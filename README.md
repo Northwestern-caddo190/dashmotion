@@ -4,7 +4,6 @@
 
 The name is the implementation: **`stroke-dash`** offset animation + **`animateMotion`** paths. That's the whole trick — no libraries, no GIF rendering, no design tools.
 
-<!-- TODO: record demo GIFs of both modes — these two images sell the entire project -->
 | Flow mode | Architecture mode |
 |---|---|
 | ![flow demo](examples/images/flow-demo.gif) | ![architecture demo](examples/images/architecture-demo.gif) |
@@ -107,6 +106,11 @@ Or screen-record (macOS ⌘⇧5). Animation durations divide 3s evenly, so a 3-s
 ## Accessibility
 
 All CSS animation is gated behind `@media (prefers-reduced-motion: no-preference)`; SMIL dots are removed by script under reduced motion; every diagram ships a visible pause/play toggle and `role="img"` + `<title>`/`<desc>`.
+
+## FAQ
+
+**Can I install this alongside [architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator)?**
+Yes — tested side by side. Animation intent ("make the request path move") routes to dashmotion; plain static architecture requests stay with Cocoon's skill. No file conflicts.
 
 ## Credits
 
