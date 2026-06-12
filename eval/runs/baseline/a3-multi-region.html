@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Region Failover — Architecture (Dashmotion)</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: #020617;
+    min-height: 100vh;
+    padding: 2rem;
+    color: #e2e8f0;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.4rem; }
+  .pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: #22d3ee; }
+  h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+  .subtitle { color: #64748b; font-size: 0.8rem; margin-bottom: 1.5rem; }
+  .diagram-card {
+    border: 1px solid #1e293b; border-radius: 12px; position: relative;
+    background:
+      repeating-linear-gradient(0deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      repeating-linear-gradient(90deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      #030a1c;
+    padding: 1.25rem 1rem;
+  }
+  .pause-btn {
+    position: absolute; top: 12px; right: 12px; z-index: 2;
+    background: transparent; border: 1px solid #1e293b; color: #64748b;
+    border-radius: 6px; padding: 4px 10px; font: inherit; font-size: 11px; cursor: pointer;
+  }
+  .pause-btn:hover { color: #e2e8f0; border-color: #334155; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+  .card { border: 1px solid #1e293b; border-radius: 10px; background: #060d20; padding: 1rem 1.1rem; }
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; }
+  .card-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .card-dot.cyan { background: #22d3ee; } .card-dot.violet { background: #a78bfa; } .card-dot.rose { background: #fb7185; }
+  .card h3 { font-size: 0.8rem; font-weight: 600; }
+  .card ul { list-style: none; }
+  .card li { font-size: 0.72rem; color: #94a3b8; line-height: 1.7; }
+  .footer { color: #475569; font-size: 0.7rem; margin-top: 1rem; }
+
+  .flow { stroke-dasharray: 5 5; }
+  .flow-auth { stroke-dasharray: 4 4; }
+  @media (prefers-reduced-motion: no-preference) {
+    .flow { animation: dashmove 0.75s linear infinite; }
+    .flow-auth { animation: dashmove8 1.2s linear infinite; }
+    .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+  }
+  @keyframes dashmove { to { stroke-dashoffset: -10; } }
+  @keyframes dashmove8 { to { stroke-dashoffset: -8; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  body.paused .flow, body.paused .flow-auth, body.paused .pulse-dot { animation-play-state: paused; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="pulse-dot"></div>
+    <h1>Multi-region failover architecture</h1>
+  </div>
+  <p class="subtitle">Active-passive setup across us-east-1 and eu-west-1 — Route 53 health-checked DNS failover, cross-region RDS replication, CloudWatch monitoring both regions</p>
+
+  <div class="diagram-card">
+    <button class="pause-btn" id="pauseBtn" aria-pressed="false">⏸ pause</button>
+
+    <svg id="flowsvg" width="100%" viewBox="0 0 1000 690" role="img">
+      <title>Multi-region failover animated architecture diagram</title>
+      <desc>Route 53 with health checks routes user traffic to an ALB in us-east-1, which load-balances across two app servers backed by an RDS primary. A standby eu-west-1 region mirrors the stack with an RDS read replica fed by cross-region replication. CloudWatch collects metrics from both regions. Animated dots show a normal user request descending into us-east-1 to the primary, then the replication flow to the replica.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- ===== BOUNDARIES (static — containment never animates) ===== -->
+      <rect x="40" y="170" width="440" height="320" rx="12" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8 4" opacity="0.6"/>
+      <text x="56" y="192" fill="#fbbf24" font-size="11" opacity="0.9">region · us-east-1 (active)</text>
+      <rect x="520" y="170" width="440" height="320" rx="12" fill="none" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8 4" opacity="0.6"/>
+      <text x="536" y="192" fill="#fbbf24" font-size="11" opacity="0.9">region · eu-west-1 (standby)</text>
+
+      <!-- ===== CONNECTORS (request paths animate; drawn before components) ===== -->
+      <g fill="none" stroke-width="1">
+        <!-- Route 53 -> ALB us-east-1 (primary, animated) -->
+        <path class="flow" d="M500 110 V160 H260 V206" stroke="#64748b" marker-end="url(#arrow)"/>
+        <!-- Route 53 -> ALB eu-west-1 (failover, standby — static, dim) -->
+        <path d="M500 110 V160 H740 V206" stroke="#64748b" stroke-dasharray="5 5" opacity="0.4" marker-end="url(#arrow)"/>
+        <!-- ALB us-east-1 -> app servers -->
+        <path class="flow" d="M260 270 V288 H155 V306" stroke="#64748b" marker-end="url(#arrow)"/>
+        <path class="flow" d="M260 270 V288 H365 V306" stroke="#64748b" marker-end="url(#arrow)"/>
+        <!-- app servers us-east-1 -> RDS primary -->
+        <path class="flow" d="M155 370 V388 H210 V406" stroke="#64748b" marker-end="url(#arrow)"/>
+        <path class="flow" d="M365 370 V388 H310 V406" stroke="#64748b" marker-end="url(#arrow)"/>
+        <!-- ALB eu-west-1 -> app servers (standby — static, dim) -->
+        <path d="M740 270 V288 H635 V306" stroke="#64748b" stroke-dasharray="5 5" opacity="0.4" marker-end="url(#arrow)"/>
+        <path d="M740 270 V288 H845 V306" stroke="#64748b" stroke-dasharray="5 5" opacity="0.4" marker-end="url(#arrow)"/>
+        <!-- app servers eu-west-1 -> RDS read replica (reads only — static, dim) -->
+        <path d="M635 370 V388 H690 V406" stroke="#64748b" stroke-dasharray="5 5" opacity="0.4" marker-end="url(#arrow)"/>
+        <path d="M845 370 V388 H790 V406" stroke="#64748b" stroke-dasharray="5 5" opacity="0.4" marker-end="url(#arrow)"/>
+        <!-- cross-region replication: RDS primary -> RDS read replica (animated, violet) -->
+        <path class="flow" d="M359 438 H641" stroke="#a78bfa" marker-end="url(#arrow)"/>
+        <!-- monitoring: regions -> CloudWatch (slower cycle) -->
+        <path class="flow-auth" d="M260 494 V568 H406" stroke="#94a3b8" opacity="0.7" marker-end="url(#arrow)"/>
+        <path class="flow-auth" d="M740 494 V568 H594" stroke="#94a3b8" opacity="0.7" marker-end="url(#arrow)"/>
+      </g>
+      <text x="512" y="140" fill="#64748b" font-size="9">HTTPS · dns</text>
+      <text x="300" y="152" fill="#64748b" font-size="9">primary</text>
+      <text x="600" y="152" fill="#64748b" font-size="9">failover · standby</text>
+      <text x="120" y="400" fill="#64748b" font-size="9">:5432</text>
+      <text x="852" y="400" fill="#64748b" font-size="9">reads</text>
+      <text x="500" y="426" fill="#a78bfa" font-size="9" text-anchor="middle" opacity="0.9">cross-region async replication</text>
+      <text x="272" y="525" fill="#64748b" font-size="9">metrics</text>
+      <text x="700" y="525" fill="#64748b" font-size="9">metrics</text>
+
+      <!-- ===== DOTS (a user request hopping into us-east-1, then replication; drawn before components) ===== -->
+      <g fill="#22d3ee">
+        <circle r="3.5" class="dot"><animateMotion dur="1.2s" begin="0s;u4.end+0.8s" id="u1" fill="freeze" path="M500 110 V160 H260 V206"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="0.7s" begin="u1.end+0.25s" id="u2" fill="freeze" path="M260 270 V288 H155 V306"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="0.6s" begin="u2.end+0.25s" id="u3" fill="freeze" path="M155 370 V388 H210 V406"/></circle>
+      </g>
+      <g fill="#a78bfa">
+        <circle r="3.5" class="dot"><animateMotion dur="1.2s" begin="u3.end+0.4s" id="u4" fill="freeze" path="M359 438 H641"/></circle>
+      </g>
+      <g fill="#94a3b8">
+        <circle r="3" class="dot"><animateMotion dur="2.4s" begin="0.5s" repeatCount="indefinite" path="M260 494 V568 H406"/></circle>
+        <circle r="3" class="dot"><animateMotion dur="2.4s" begin="1.7s" repeatCount="indefinite" path="M740 494 V568 H594"/></circle>
+      </g>
+
+      <!-- ===== COMPONENTS (opaque base + styled rect, drawn last) ===== -->
+      <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+        <!-- Route 53 -->
+        <rect x="410" y="50" width="180" height="56" rx="8" fill="#0b1226"/>
+        <rect x="410" y="50" width="180" height="56" rx="8" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="500" y="74" fill="#e2e8f0" font-size="13" font-weight="500">Route 53</text>
+        <text x="500" y="92" fill="#64748b" font-size="10">DNS failover · health checks</text>
+
+        <!-- us-east-1 -->
+        <rect x="175" y="210" width="170" height="56" rx="8" fill="#0b1226"/>
+        <rect x="175" y="210" width="170" height="56" rx="8" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="260" y="234" fill="#e2e8f0" font-size="13" font-weight="500">ALB</text>
+        <text x="260" y="252" fill="#64748b" font-size="10">application LB</text>
+
+        <rect x="70" y="310" width="170" height="56" rx="8" fill="#0b1226"/>
+        <rect x="70" y="310" width="170" height="56" rx="8" fill="rgba(6,78,59,0.45)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="155" y="334" fill="#e2e8f0" font-size="13" font-weight="500">App Server 1</text>
+        <text x="155" y="352" fill="#64748b" font-size="10">EC2 · us-east-1a</text>
+
+        <rect x="280" y="310" width="170" height="56" rx="8" fill="#0b1226"/>
+        <rect x="280" y="310" width="170" height="56" rx="8" fill="rgba(6,78,59,0.45)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="365" y="334" fill="#e2e8f0" font-size="13" font-weight="500">App Server 2</text>
+        <text x="365" y="352" fill="#64748b" font-size="10">EC2 · us-east-1b</text>
+
+        <rect x="165" y="410" width="190" height="56" rx="8" fill="#0b1226"/>
+        <rect x="165" y="410" width="190" height="56" rx="8" fill="rgba(76,29,149,0.45)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="260" y="434" fill="#e2e8f0" font-size="13" font-weight="500">RDS Primary</text>
+        <text x="260" y="452" fill="#64748b" font-size="10">PostgreSQL · writes</text>
+
+        <!-- eu-west-1 -->
+        <rect x="655" y="210" width="170" height="56" rx="8" fill="#0b1226"/>
+        <rect x="655" y="210" width="170" height="56" rx="8" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="740" y="234" fill="#e2e8f0" font-size="13" font-weight="500">ALB</text>
+        <text x="740" y="252" fill="#64748b" font-size="10">application LB</text>
+
+        <rect x="550" y="310" width="170" height="56" rx="8" fill="#0b1226"/>
+        <rect x="550" y="310" width="170" height="56" rx="8" fill="rgba(6,78,59,0.45)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="635" y="334" fill="#e2e8f0" font-size="13" font-weight="500">App Server 1</text>
+        <text x="635" y="352" fill="#64748b" font-size="10">EC2 · eu-west-1a</text>
+
+        <rect x="760" y="310" width="170" height="56" rx="8" fill="#0b1226"/>
+        <rect x="760" y="310" width="170" height="56" rx="8" fill="rgba(6,78,59,0.45)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="845" y="334" fill="#e2e8f0" font-size="13" font-weight="500">App Server 2</text>
+        <text x="845" y="352" fill="#64748b" font-size="10">EC2 · eu-west-1b</text>
+
+        <rect x="645" y="410" width="190" height="56" rx="8" fill="#0b1226"/>
+        <rect x="645" y="410" width="190" height="56" rx="8" fill="rgba(76,29,149,0.45)" stroke="#a78bfa" stroke-width="1.5"/>
+        <text x="740" y="434" fill="#e2e8f0" font-size="13" font-weight="500">RDS Read Replica</text>
+        <text x="740" y="452" fill="#64748b" font-size="10">PostgreSQL · read-only</text>
+
+        <!-- CloudWatch -->
+        <rect x="410" y="540" width="180" height="56" rx="8" fill="#0b1226"/>
+        <rect x="410" y="540" width="180" height="56" rx="8" fill="rgba(120,53,15,0.35)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="500" y="564" fill="#e2e8f0" font-size="13" font-weight="500">CloudWatch</text>
+        <text x="500" y="582" fill="#64748b" font-size="10">metrics · alarms · both regions</text>
+      </g>
+
+      <!-- ===== LEGEND (outside all boundaries) ===== -->
+      <g font-family="JetBrains Mono, monospace" font-size="11">
+        <rect x="44" y="624" width="12" height="12" rx="3" fill="rgba(120,53,15,0.35)" stroke="#fbbf24"/>
+        <text x="64" y="634" fill="#94a3b8">cloud infra</text>
+        <rect x="180" y="624" width="12" height="12" rx="3" fill="rgba(6,78,59,0.45)" stroke="#34d399"/>
+        <text x="200" y="634" fill="#94a3b8">service</text>
+        <rect x="290" y="624" width="12" height="12" rx="3" fill="rgba(76,29,149,0.45)" stroke="#a78bfa"/>
+        <text x="310" y="634" fill="#94a3b8">data</text>
+        <circle cx="380" cy="630" r="3.5" fill="#22d3ee"/>
+        <text x="394" y="634" fill="#94a3b8">request in flight</text>
+        <circle cx="540" cy="630" r="3.5" fill="#a78bfa"/>
+        <text x="554" y="634" fill="#94a3b8">replication</text>
+        <circle cx="668" cy="630" r="3" fill="#94a3b8"/>
+        <text x="682" y="634" fill="#94a3b8">metrics</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-header"><div class="card-dot cyan"></div><h3>Request path</h3></div>
+      <ul><li>• Route 53 resolves to us-east-1 (active)</li><li>• ALB spreads load over 2 app servers</li><li>• Writes land on the RDS primary</li><li>• Watch the cyan dot hop tier by tier</li></ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-dot violet"></div><h3>Data layer</h3></div>
+      <ul><li>• RDS Primary in us-east-1 — system of record</li><li>• Cross-region async replication (violet dot)</li><li>• eu-west-1 replica serves reads, promotable</li></ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-dot rose"></div><h3>Failover &amp; monitoring</h3></div>
+      <ul><li>• Route 53 health checks gate the DNS answer</li><li>• Unhealthy us-east-1 → traffic shifts to eu-west-1</li><li>• CloudWatch ingests metrics from both regions</li></ul>
+    </div>
+  </div>
+
+  <p class="footer">Generated 2026-06-11 · dashmotion · architecture mode</p>
+</div>
+
+<script>
+  (function () {
+    var svg = document.getElementById('flowsvg');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.dot').forEach(function (d) { d.remove(); });
+      document.getElementById('pauseBtn').remove();
+      return;
+    }
+    var btn = document.getElementById('pauseBtn');
+    var paused = false;
+    btn.addEventListener('click', function () {
+      paused = !paused;
+      document.body.classList.toggle('paused', paused);
+      paused ? svg.pauseAnimations() : svg.unpauseAnimations();
+      btn.textContent = paused ? '▶ play' : '⏸ pause';
+      btn.setAttribute('aria-pressed', String(paused));
+    });
+  })();
+</script>
+</body>
+</html>

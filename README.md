@@ -79,7 +79,7 @@ unzip dashmotion.zip -d ./.claude/skills/      # or project-local
 </circle>
 ```
 
-The skill encodes the layout arithmetic that makes generation reliable: branch-bar fan-out/fan-in, boundary nesting and padding rules, opaque masking under semi-transparent fills, legend placement, seamless-loop constraints, and z-ordering so dots vanish *into* the node they arrive at.
+The skill encodes the layout arithmetic that makes generation reliable: branch-bar fan-out/fan-in, boundary nesting and padding rules, opaque masking under semi-transparent fills, legend placement, seamless-loop constraints, and z-ordering so dots vanish *into* the node they arrive at. Before delivering, it re-verifies the produced SVG against a structural checklist — overlapping boxes, connectors cutting through nodes, broken animation loops, out-of-viewBox coordinates — and fixes what it finds.
 
 ## Project layout
 

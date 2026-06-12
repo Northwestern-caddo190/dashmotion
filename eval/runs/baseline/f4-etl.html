@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nightly ETL — Animated Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: #020617;
+    min-height: 100vh;
+    padding: 2rem;
+    color: #e2e8f0;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.4rem; }
+  .pulse-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #34d399;
+  }
+  h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+  .subtitle { color: #64748b; font-size: 0.8rem; margin-bottom: 1.5rem; }
+  .diagram-card {
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    background:
+      linear-gradient(#02061700, #02061700),
+      repeating-linear-gradient(0deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      repeating-linear-gradient(90deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      #030a1c;
+    padding: 1.5rem 1rem;
+    position: relative;
+  }
+  .pause-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: transparent; border: 1px solid #1e293b; color: #64748b;
+    border-radius: 6px; padding: 4px 10px; font: inherit; font-size: 11px;
+    cursor: pointer;
+  }
+  .pause-btn:hover { color: #e2e8f0; border-color: #334155; }
+  .footer { color: #475569; font-size: 0.7rem; margin-top: 1rem; }
+
+  .flow { stroke-dasharray: 5 5; }
+  @media (prefers-reduced-motion: no-preference) {
+    .flow { animation: dashmove 0.75s linear infinite; }
+    .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+  }
+  @keyframes dashmove { to { stroke-dashoffset: -10; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  body.paused .flow, body.paused .pulse-dot { animation-play-state: paused; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="pulse-dot"></div>
+    <h1>Nightly ETL workflow</h1>
+  </div>
+  <p class="subtitle">Scheduler-driven parallel extraction, quality-gated transform &amp; load, parallel downstream refresh</p>
+
+  <div class="diagram-card">
+    <button class="pause-btn" id="pauseBtn" aria-pressed="false">⏸ pause</button>
+
+    <svg id="flowsvg" width="100%" viewBox="0 0 920 910" role="img">
+      <title>Nightly ETL animated workflow diagram</title>
+      <desc>The scheduler starts extraction from the billing API, a Postgres dump, and S3 event files in parallel. The three extracts merge into normalize, then a data-quality gate decides: failing batches go to quarantine and alert the data team, ending the run; passing batches are transformed into the star schema, loaded into the warehouse, then BI dashboards refresh and downstream consumers are notified in parallel before the run ends. Dashed connectors animate in the direction of execution.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- ===== CONNECTORS (drawn first: nodes mask their ends) ===== -->
+      <g stroke="#10b981" stroke-width="1" opacity="0.85" fill="none">
+        <!-- START -> Scheduler -->
+        <path class="flow" d="M460 80 V132" marker-end="url(#arrow)"/>
+        <!-- Scheduler fan-out to three extracts (rail 208, branch tops 232) -->
+        <path class="flow" d="M460 180 V208 H280 V228" marker-end="url(#arrow)"/>
+        <path class="flow" d="M460 180 V228" marker-end="url(#arrow)"/>
+        <path class="flow" d="M460 180 V208 H640 V228" marker-end="url(#arrow)"/>
+        <!-- Extracts fan-in to Normalize (rail 304, target top 328) -->
+        <path class="flow" d="M280 276 V304 H460 V324"/>
+        <path class="flow" d="M460 276 V324" marker-end="url(#arrow)"/>
+        <path class="flow" d="M640 276 V304 H460 V324"/>
+        <!-- Normalize -> Data-quality gate -->
+        <path class="flow" d="M460 372 V424" marker-end="url(#arrow)"/>
+        <!-- Gate pass -> Transform -->
+        <path class="flow" d="M460 472 V524" marker-end="url(#arrow)"/>
+        <!-- Gate fail -> Quarantine (left column) -->
+        <path class="flow" d="M370 450 H170 V524" marker-end="url(#arrow)"/>
+        <!-- Quarantine -> Alert data team -->
+        <path class="flow" d="M170 572 V624" marker-end="url(#arrow)"/>
+        <!-- Alert data team -> END (failed batch) -->
+        <path class="flow" d="M170 672 V724" marker-end="url(#arrow)"/>
+        <!-- Transform -> Load warehouse -->
+        <path class="flow" d="M460 572 V624" marker-end="url(#arrow)"/>
+        <!-- Load fan-out to BI refresh + notify (rail 700, branch tops 724) -->
+        <path class="flow" d="M460 672 V700 H356 V720" marker-end="url(#arrow)"/>
+        <path class="flow" d="M460 672 V700 H581 V720" marker-end="url(#arrow)"/>
+        <!-- Fan-in to END (rail 796, END top 820) -->
+        <path class="flow" d="M356 768 V796 H460 V816" marker-end="url(#arrow)"/>
+        <path class="flow" d="M581 768 V796 H460 V816"/>
+      </g>
+
+      <!-- Decision branch labels -->
+      <g font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">
+        <text x="300" y="443" text-anchor="middle">fail</text>
+        <text x="470" y="502" text-anchor="start">pass</text>
+      </g>
+
+      <!-- ===== TRAVELING DOTS (path = connector d, staggered begin) ===== -->
+      <g fill="#34d399">
+        <circle r="3.5" class="dot"><animateMotion dur="1.5s" repeatCount="indefinite" path="M460 80 L460 132"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2.2s" repeatCount="indefinite" path="M460 180 L460 208 L280 208 L280 228"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2.2s" begin="0.7s" repeatCount="indefinite" path="M460 180 L460 208 L640 208 L640 228"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2s" begin="0.4s" repeatCount="indefinite" path="M460 672 L460 700 L356 700 L356 720"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2s" begin="1s" repeatCount="indefinite" path="M356 768 L356 796 L460 796 L460 816"/></circle>
+      </g>
+
+      <!-- ===== NODES (drawn last, on top) ===== -->
+      <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+        <!-- START pill -->
+        <rect x="400" y="40" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="460" y="65" fill="#e2e8f0" font-size="13" font-weight="600">START</text>
+
+        <!-- Scheduler -->
+        <rect x="405" y="136" width="110" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="460" y="155" fill="#e2e8f0" font-size="13" font-weight="500">Scheduler</text>
+        <text x="460" y="169" fill="#64748b" font-size="10">nightly cron</text>
+
+        <!-- Parallel extracts -->
+        <rect x="205" y="232" width="150" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="280" y="251" fill="#e2e8f0" font-size="13" font-weight="500">Billing API</text>
+        <text x="280" y="265" fill="#64748b" font-size="10">extract</text>
+
+        <rect x="385" y="232" width="150" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="460" y="251" fill="#e2e8f0" font-size="13" font-weight="500">Postgres dump</text>
+        <text x="460" y="265" fill="#64748b" font-size="10">extract</text>
+
+        <rect x="565" y="232" width="150" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="640" y="251" fill="#e2e8f0" font-size="13" font-weight="500">S3 event files</text>
+        <text x="640" y="265" fill="#64748b" font-size="10">extract</text>
+
+        <!-- Normalize (merge target) -->
+        <rect x="405" y="328" width="110" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="460" y="355" fill="#e2e8f0" font-size="13" font-weight="500">Normalize</text>
+
+        <!-- Data-quality gate (decision) -->
+        <rect x="370" y="428" width="180" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981" stroke-dasharray="4 3"/>
+        <text x="460" y="455" fill="#e2e8f0" font-size="13" font-weight="500">Data-quality gate</text>
+
+        <!-- Fail branch: Quarantine -->
+        <rect x="110" y="528" width="120" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="170" y="555" fill="#e2e8f0" font-size="13" font-weight="500">Quarantine</text>
+
+        <!-- Fail branch: Alert data team -->
+        <rect x="90" y="628" width="160" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="170" y="655" fill="#e2e8f0" font-size="13" font-weight="500">Alert data team</text>
+
+        <!-- Fail branch: END pill -->
+        <rect x="110" y="728" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="170" y="753" fill="#e2e8f0" font-size="13" font-weight="600">END</text>
+
+        <!-- Transform -->
+        <rect x="405" y="528" width="110" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="460" y="547" fill="#e2e8f0" font-size="13" font-weight="500">Transform</text>
+        <text x="460" y="561" fill="#64748b" font-size="10">star schema</text>
+
+        <!-- Load warehouse -->
+        <rect x="384" y="628" width="152" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="460" y="655" fill="#e2e8f0" font-size="13" font-weight="500">Load warehouse</text>
+
+        <!-- Parallel downstream pair -->
+        <rect x="250" y="724" width="212" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="356" y="751" fill="#e2e8f0" font-size="13" font-weight="500">Refresh BI dashboards</text>
+
+        <rect x="497" y="724" width="168" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="581" y="743" fill="#e2e8f0" font-size="13" font-weight="500">Notify consumers</text>
+        <text x="581" y="757" fill="#64748b" font-size="10">downstream</text>
+
+        <!-- END pill -->
+        <rect x="400" y="820" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="460" y="845" fill="#e2e8f0" font-size="13" font-weight="600">END</text>
+      </g>
+    </svg>
+  </div>
+
+  <p class="footer">Generated 2026-06-11 · dashmotion · flow mode</p>
+</div>
+
+<script>
+  (function () {
+    var svg = document.getElementById('flowsvg');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.dot').forEach(function (d) { d.remove(); });
+      document.getElementById('pauseBtn').remove();
+      return;
+    }
+    var btn = document.getElementById('pauseBtn');
+    var paused = false;
+    btn.addEventListener('click', function () {
+      paused = !paused;
+      document.body.classList.toggle('paused', paused);
+      paused ? svg.pauseAnimations() : svg.unpauseAnimations();
+      btn.textContent = paused ? '▶ play' : '⏸ pause';
+      btn.setAttribute('aria-pressed', String(paused));
+    });
+  })();
+</script>
+</body>
+</html>

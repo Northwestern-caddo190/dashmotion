@@ -83,6 +83,18 @@ Never render frames by hand. Screen-record the open file (macOS ⌘⇧5), or hea
 `npx timecut <file.html> --viewport=1200,900 --duration=3 --fps=30 --output=flow.mp4` then `ffmpeg -i flow.mp4 flow.gif`.
 A 3s capture loops seamlessly when all durations divide 3s — prefer 0.75s / 1.5s / 3s when GIF export is the goal.
 
+## Step 6 — Structural self-check (before delivering)
+
+Hand-computed coordinates fail in predictable ways, and the connector layer fails far more often than the text layer. The file is not done when it's written — it's done when it passes this checklist. Re-read the SVG you just produced and verify each item **with arithmetic on the actual numbers** (write the comparisons out), not by eyeballing the code. Fix every violation and re-check until the list is clean.
+
+1. **Overlaps** — for every pair of same-row elements: `left.x + left.width + gap ≤ right.x` (gap ≥ 20 flow / 40 architecture). For every stacked pair: `top.y + top.height + gap ≤ bottom.y`. A boundary must fully contain its children with ≥ 20px padding on all four sides; partial overlap between any two boxes is always a bug.
+2. **Connectors through boxes** — walk every path segment by segment: between its endpoints it must not enter any node rect. Check every horizontal rail's `y` against the rects it passes (`rect.y ≤ y ≤ rect.y + height` means a collision); same for vertical drops' `x`. Fix by re-routing with the rail pattern, not by nudging boxes until something else breaks.
+3. **Animation loops** — for each animated class: `|stroke-dashoffset delta|` must be an exact multiple of the `stroke-dasharray` period sum (e.g. `5 5` → 10), **including connectors that override the dasharray inline** (an async `2 4` edge animated by a `-10` keyframe seams every cycle — give it its own keyframes). For each `animateMotion`, name the single connector whose `d` it traces — a dot path that spans two connectors sails straight through the component between them; split it into chained per-hop dots instead. Every `begin="X.end+…"` must reference an `id` that exists.
+4. **ViewBox bounds** — no negative coordinates anywhere; every rect's `x+width`/`y+height` and every path coordinate stays inside `0 0 W H`; H ≥ lowest element bottom + 20; the legend sits below the lowest boundary (architecture).
+5. **Connector & markup hygiene** — every connector `<path>` resolves to `fill="none"`; endpoints stop ~4px short of the target border and never reach inside a box; no `--` inside SVG comments (`<!-- A -- B -->` closes the comment early and leaks stray text into the document).
+
+Deliver the file only after a pass where nothing needed fixing.
+
 ## Output contract
 
 One self-contained `.html`: embedded CSS, inline SVG, no external assets except Google Fonts, no JS dependencies — only the ~15-line inline pause/reduced-motion script. Renders correctly opened from the filesystem.

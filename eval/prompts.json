@@ -1,0 +1,55 @@
+{
+  "description": "10 realistic prompts for measuring dashmotion structural failure rate (5 flow + 5 architecture). Complexity spans ~8-16 nodes; includes loops, multi-way branches, parallel rails, message bus, nested and sibling boundaries, async edges.",
+  "prompts": [
+    {
+      "id": "f1-cicd",
+      "mode": "flow",
+      "prompt": "Use dashmotion to visualize our CI/CD pipeline: a commit triggers lint, unit tests and integration tests in parallel; all three merge into building the Docker image; then a security scan; then a manual approval gate (approved / rejected — rejected notifies the author and ends); approved deploys a canary; canary metrics are checked — if they regress we roll back and return to the approval gate, if they pass we promote to production and send a Slack notification."
+    },
+    {
+      "id": "f2-order-saga",
+      "mode": "flow",
+      "prompt": "Use dashmotion to visualize this order workflow: user submits an order; validate payment and reserve inventory in parallel; both merge into a fraud-review wait timer; after the timer a decision — flagged orders go to manual review which can loop back to the timer once, clean orders proceed; ship the order; then send a confirmation email and update analytics in parallel; end."
+    },
+    {
+      "id": "f3-signup-state",
+      "mode": "flow",
+      "prompt": "Use dashmotion to draw our signup state machine: visitor fills the form; validation errors loop back to the form; on success create the account and send a verification email; wait up to 24h (timer); if the link is clicked the account becomes Active and onboarding starts; if not clicked, one resend is allowed (loop back to send email); after the resend window expires the account is purged (separate end state)."
+    },
+    {
+      "id": "f4-etl",
+      "mode": "flow",
+      "prompt": "Use dashmotion to visualize our nightly ETL: the scheduler kicks off extraction from three sources in parallel — the billing API, a Postgres dump, and S3 event files; the three extracts merge into normalize; a data-quality gate decides — failing batches go to quarantine and alert the data team (end), passing batches continue; transform into the star schema; load the warehouse; then refresh BI dashboards and notify downstream consumers in parallel; end."
+    },
+    {
+      "id": "f5-incident",
+      "mode": "flow",
+      "prompt": "Use dashmotion to draw our incident response runbook: an alert fires; triage decides severity three ways — P1 pages the on-call and opens a war room, P2 creates a ticket for the next business day, P3 is logged only and ends; P1 and P2 both lead to mitigation; verify the fix — if verification fails loop back to mitigation; once verified, write the postmortem and close the incident."
+    },
+    {
+      "id": "a1-saas-aws",
+      "mode": "architecture",
+      "prompt": "Use dashmotion to draw our SaaS architecture on AWS and animate the main request path: a React frontend served behind CloudFront; API Gateway routes to an Auth Service (Go), an Order Service (Node.js) and a Notification Service (Python) inside a private subnet; PostgreSQL on RDS and Redis on ElastiCache as the data layer; Cognito handles auth; static assets live in S3. Animate an order request from the client all the way to PostgreSQL, plus the auth flow to Cognito."
+    },
+    {
+      "id": "a2-k8s-kafka",
+      "mode": "architecture",
+      "prompt": "Use dashmotion to draw our Kubernetes microservices platform: an NGINX ingress in front; users, catalog, cart and payments services inside the 'shop' namespace; a Kafka bus between the services and two async workers (email worker, analytics worker); PostgreSQL for orders and MongoDB for the catalog; Prometheus and Grafana in an observability namespace. Animate a checkout request from ingress through cart and payments to PostgreSQL, and an async event from payments through Kafka to the email worker."
+    },
+    {
+      "id": "a3-multi-region",
+      "mode": "architecture",
+      "prompt": "Use dashmotion to draw our multi-region failover setup: Route 53 with health checks at the top; region us-east-1 contains an ALB and two app servers and the RDS primary; region eu-west-1 contains an ALB and two app servers and an RDS read replica; cross-region database replication between the two RDS instances; CloudWatch monitors both regions. Animate a normal user request into us-east-1 down to the primary, and the replication flow from primary to replica."
+    },
+    {
+      "id": "a4-serverless",
+      "mode": "architecture",
+      "prompt": "Use dashmotion to draw our serverless event-driven backend: clients hit API Gateway which invokes an Orders Lambda writing to DynamoDB; DynamoDB streams feed EventBridge; EventBridge fans out to an SQS queue consumed by a Fulfillment Lambda that calls SES to email the customer, and to a Firehose delivery stream into S3 for analytics; static frontend on S3 + CloudFront. Animate the synchronous order request and the asynchronous fulfillment event as separate journeys."
+    },
+    {
+      "id": "a5-hybrid",
+      "mode": "architecture",
+      "prompt": "Use dashmotion to draw our hybrid on-prem + cloud architecture: the on-premises datacenter contains Active Directory, a legacy ERP system and a file server; a site-to-site VPN connects it to AWS; inside AWS a private subnet holds DMS replicating the ERP database to RDS, plus two app servers behind an internal ALB; IAM Identity Center federates with the on-prem AD. Animate the ERP data sync journey from on-prem through the VPN and DMS into RDS, and a user auth flow from AD to IAM Identity Center."
+    }
+  ]
+}
