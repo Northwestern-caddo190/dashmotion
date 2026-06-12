@@ -36,24 +36,18 @@ npx skills add csthink/dashmotion -a claude-code
 
 **claude.ai** — 从 [Releases](../../releases) 下载 `dashmotion.zip`,然后 **Settings → Capabilities → Skills → + Add → 上传 → 开启**。
 
-然后这样问:
+然后这样问。下面两个就是顶部两个 demo 用的 prompt——粘给 Claude 就能复现(每次生成布局会略有不同,但还是同一张图)。提示词用英文,生成的标签与上方 demo 一致;换成中文描述同样能触发。
+
+**Flow 模式** —— 上方左边那个 demo:
 
 ```
-帮我画一个动画流程图:
-- 用户提交订单
-- 并行校验支付和库存
-- 等待风控定时器
-- 发货后并行发送确认邮件和更新分析
+Use dashmotion to visualize our CI/CD pipeline: a commit triggers lint, unit tests and integration tests in parallel; all three merge into building the Docker image; then a security scan; then a manual approval gate (approved / rejected — rejected notifies the author and ends); approved deploys a canary; canary metrics are checked — if they regress we roll back and return to the approval gate, if they pass we promote to production and send a Slack notification.
 ```
 
-或:
+**Architecture 模式** —— 上方右边那个 demo:
 
 ```
-画出我们的系统架构并让主请求路径动起来:
-- React 前端走 CloudFront
-- API Gateway 后面是私有子网里的 Auth Service (Go) 和 Order Service (Node)
-- 数据层 PostgreSQL + Redis
-- Cognito 做认证
+Use dashmotion to draw our Kubernetes microservices platform: an NGINX ingress in front; users, catalog, cart and payments services inside the 'shop' namespace; a Kafka bus between the services and two async workers (email worker, analytics worker); PostgreSQL for orders and MongoDB for the catalog; Prometheus and Grafana in an observability namespace. Animate a checkout request from ingress through cart and payments to PostgreSQL, and an async event from payments through Kafka to the email worker.
 ```
 
 Claude 会返回一个 `.html` 文件,打开即动。

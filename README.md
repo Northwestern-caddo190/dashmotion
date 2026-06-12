@@ -36,24 +36,18 @@ Prefer the zip on Claude Code? `rm -rf ~/.claude/skills/dashmotion && unzip dash
 
 **claude.ai** — download `dashmotion.zip` from [Releases](../../releases), then **Settings → Capabilities → Skills → + Add → upload → toggle on**.
 
-Then ask:
+Then ask. These two prompts produced the demos at the top of this page — paste either to reproduce it. (Each run regenerates the layout, so yours won't be pixel-identical, but it's the same diagram.)
+
+**Flow mode** — the left demo above:
 
 ```
-Use dashmotion to visualize this workflow:
-- User submits an order
-- Validate payment and check inventory in parallel
-- Wait for fraud-review timer
-- Ship, then send confirmation email and update analytics in parallel
+Use dashmotion to visualize our CI/CD pipeline: a commit triggers lint, unit tests and integration tests in parallel; all three merge into building the Docker image; then a security scan; then a manual approval gate (approved / rejected — rejected notifies the author and ends); approved deploys a canary; canary metrics are checked — if they regress we roll back and return to the approval gate, if they pass we promote to production and send a Slack notification.
 ```
 
-or:
+**Architecture mode** — the right demo above:
 
 ```
-Use dashmotion to draw our architecture and animate the main request path:
-- React frontend behind CloudFront
-- API Gateway → Auth Service (Go) and Order Service (Node) in a private subnet
-- PostgreSQL and Redis
-- Cognito for auth
+Use dashmotion to draw our Kubernetes microservices platform: an NGINX ingress in front; users, catalog, cart and payments services inside the 'shop' namespace; a Kafka bus between the services and two async workers (email worker, analytics worker); PostgreSQL for orders and MongoDB for the catalog; Prometheus and Grafana in an observability namespace. Animate a checkout request from ingress through cart and payments to PostgreSQL, and an async event from payments through Kafka to the email worker.
 ```
 
 Claude returns a single `.html` file. Open it — it's already moving.
