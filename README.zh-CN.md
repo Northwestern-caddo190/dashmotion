@@ -16,23 +16,27 @@
 
 **Architecture 模式** — 系统、基础设施、拓扑。*系统由什么组成——以及请求如何在其中流动。* 语义化组件配色(前端/服务/数据/云/安全)、region 与安全组边界、图例、摘要卡片,以及差异化的核心:**动画请求旅程**。一颗青色光点从客户端出发,跳过 CDN 和网关,落进服务,抵达数据库,然后下一个请求开始。你的架构图解释的是*行为*,而不只是结构。
 
-## 为什么不直接用 GIF?
-
-| | GIF | Dashmotion (SVG/CSS) |
-|---|---|---|
-| 文件体积 | 数 MB | 数十 KB |
-| 清晰度 | 固定分辨率 | 矢量,无限缩放 |
-| 可编辑性 | 全部重新渲染 | 让 Claude 改一个框即可 |
-| 无缝循环 | 逐帧对齐的苦活 | 天然免费 |
-| 之后转 GIF | — | 一条命令(`timecut`)或直接录屏 |
-
 ## 快速开始
 
-> 需要 Claude Pro、Max、Team 或 Enterprise 订阅。
+先装 skill,然后让 Claude 给你画图。需要带 skills 的 Claude 订阅(Pro、Max、Team 或 Enterprise)。
 
-1. 从 [Releases](../../releases) 下载 `dashmotion.zip`
-2. claude.ai → **Settings** → **Capabilities** → **Skills** → **+ Add** → 上传 zip → 开启
-3. 直接提问(中文提示词实测可正常触发):
+**Claude Code** — 一条命令,装/更新都用它(原地覆盖):
+
+```bash
+npx skills add csthink/dashmotion -a claude-code
+```
+
+<details>
+<summary>为什么要带 <code>-a claude-code</code>?</summary>
+
+裸 `npx skills add csthink/dashmotion` 建的是*符号链接*,而 Claude Code 当前对符号链接支持很不稳——链接可能根本没建成、符号链接的 skill 不出现在 `/skills`([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836))、`npx skills update` 也不刷新它。`-a claude-code` 写入一个普通拷贝,`/skills` 能列出,并会覆盖旧拷贝。其他 agent(Cursor、Codex 等)直接读 `~/.agents/skills/`,裸命令没问题。
+
+想在 Claude Code 上用 zip?`rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/` —— 升级时先清空目录,避免旧文件残留。
+</details>
+
+**claude.ai** — 从 [Releases](../../releases) 下载 `dashmotion.zip`,然后 **Settings → Capabilities → Skills → + Add → 上传 → 开启**。
+
+然后这样问:
 
 ```
 帮我画一个动画流程图:
@@ -54,37 +58,15 @@
 
 Claude 会返回一个 `.html` 文件,打开即动。
 
-### Claude Code
+## 为什么不直接用 GIF?
 
-用 [`skills`](https://github.com/vercel-labs/skills) CLI 安装——**Claude Code 请带上 `-a claude-code`**。一条命令搞定安装、升级、或替换手动解压的旧版:它会在 `~/.claude/skills/dashmotion` 写入一个真目录(`/skills` 能正常列出),并覆盖原有内容。
-
-```bash
-npx skills add csthink/dashmotion -a claude-code   # 安装——之后重跑这条即更新
-```
-
-> 为什么要这个 flag:裸 `npx skills add csthink/dashmotion` 建的是*符号链接*而非拷贝,而 Claude Code 当前对符号链接支持很不稳——链接可能根本没建成、符号链接的 skill 不出现在 `/skills`([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836))、`npx skills update` 也不会刷新它。`-a claude-code` 用普通拷贝绕开了所有这些坑。其他 agent(Cursor、Codex 等)直接读 `~/.agents/skills/`,裸命令没问题。
-
-想用 zip?同样可靠,只是手动——升级时先清空目录,避免旧文件残留:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/   # 全局
-unzip dashmotion.zip -d ./.claude/skills/                                         # 或项目级
-```
-
-### 卸载
-
-用 `skills` CLI 装的(会从所有装过的 agent 一并移除):
-
-```bash
-npx skills remove dashmotion        # 全局安装的话加 -g
-```
-
-手动解压装的——直接删目录:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion      # 全局
-rm -rf ./.claude/skills/dashmotion      # 或项目级
-```
+| | GIF | Dashmotion (SVG/CSS) |
+|---|---|---|
+| 文件体积 | 数 MB | 数十 KB |
+| 清晰度 | 固定分辨率 | 矢量,无限缩放 |
+| 可编辑性 | 全部重新渲染 | 让 Claude 改一个框即可 |
+| 无缝循环 | 逐帧对齐的苦活 | 天然免费 |
+| 之后转 GIF | — | 一条命令(`timecut`)或直接录屏 |
 
 ## 动画原理
 
@@ -123,6 +105,17 @@ dashmotion/                               # 仓库根
 ```
 
 `npx skills add` 和发行版 zip 只打包 `skills/dashmotion/`;`eval/` 和 `examples/` 留在仓库里。两个模板本身就是完整可用的示例——现在就能用浏览器打开。
+
+## 更新与卸载
+
+**更新** — 重跑安装命令:`npx skills add csthink/dashmotion -a claude-code`(原地覆盖)。claude.ai 上则删掉旧 skill 再上传新 zip。
+
+**卸载:**
+
+```bash
+npx skills remove dashmotion            # 用 skills CLI 装的(全局加 -g)
+rm -rf ~/.claude/skills/dashmotion      # 手动解压装的(项目级用 ./.claude/...)
+```
 
 ## 导出 GIF / MP4
 

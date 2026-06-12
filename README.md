@@ -16,23 +16,27 @@ The name is the implementation: **`stroke-dash`** offset animation + **`animateM
 
 **Architecture mode** — systems, infrastructure, topology. *What the system is made of — and how requests move through it.* Semantic component colors (frontend/service/data/cloud/security), region and security-group boundaries, a legend, summary cards — plus the differentiator: animated request journeys. A cyan dot leaves the client, hops through the CDN and gateway, lands in a service, reaches the database, and a new request begins. Your architecture diagram explains *behavior*, not just structure.
 
-## Why not just a GIF?
-
-| | GIF | Dashmotion (SVG/CSS) |
-|---|---|---|
-| File size | MBs | KBs |
-| Sharpness | fixed resolution | vector, infinite zoom |
-| Editable | re-render everything | ask Claude to change one box |
-| Loop | frame-perfect work | free |
-| Convert to GIF later | — | one command (`timecut`) or screen-record |
-
 ## Quick start
 
-> Requires Claude Pro, Max, Team, or Enterprise.
+Install the skill, then ask Claude for a diagram. Needs a Claude plan that includes skills (Pro, Max, Team, or Enterprise).
 
-1. Download `dashmotion.zip` from [Releases](../../releases)
-2. claude.ai → **Settings** → **Capabilities** → **Skills** → **+ Add** → upload → toggle on
-3. Ask:
+**Claude Code** — one command, installs or updates in place:
+
+```bash
+npx skills add csthink/dashmotion -a claude-code
+```
+
+<details>
+<summary>Why the <code>-a claude-code</code> flag?</summary>
+
+The bare `npx skills add csthink/dashmotion` *symlinks* the skill, and Claude Code's symlink handling is currently rough — the link may not get created, a symlinked skill doesn't appear in `/skills` ([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836)), and `npx skills update` won't refresh it. `-a claude-code` writes a plain copy that `/skills` lists and that overwrites an older copy in place. Other agents (Cursor, Codex, …) read `~/.agents/skills/` directly and work fine with the bare command.
+
+Prefer the zip on Claude Code? `rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/` — clear the folder first when upgrading so old files don't linger.
+</details>
+
+**claude.ai** — download `dashmotion.zip` from [Releases](../../releases), then **Settings → Capabilities → Skills → + Add → upload → toggle on**.
+
+Then ask:
 
 ```
 Use dashmotion to visualize this workflow:
@@ -54,37 +58,15 @@ Use dashmotion to draw our architecture and animate the main request path:
 
 Claude returns a single `.html` file. Open it — it's already moving.
 
-### Claude Code
+## Why not just a GIF?
 
-Install with the [`skills`](https://github.com/vercel-labs/skills) CLI — **for Claude Code, pass `-a claude-code`**. One command installs, upgrades, or replaces a hand-unzipped copy: it writes a real folder to `~/.claude/skills/dashmotion` (which `/skills` reliably lists) and overwrites whatever is already there.
-
-```bash
-npx skills add csthink/dashmotion -a claude-code   # install — re-run anytime to update
-```
-
-> Why the flag: the bare `npx skills add csthink/dashmotion` *symlinks* the skill instead of copying it, and Claude Code's symlink handling is currently rough — the link may not get created, a symlinked skill doesn't appear in `/skills` ([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836)), and `npx skills update` won't refresh it. `-a claude-code` sidesteps all of that with a plain copy. Other agents (Cursor, Codex, …) read `~/.agents/skills/` directly and work fine with the bare command.
-
-Prefer the zip? Equally reliable, just manual — clear the folder first when upgrading so old files don't linger:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/   # global
-unzip dashmotion.zip -d ./.claude/skills/                                         # or project-local
-```
-
-### Uninstall
-
-Installed with the `skills` CLI (removes it from every agent it was added to):
-
-```bash
-npx skills remove dashmotion        # add -g if you installed it globally
-```
-
-Installed by unzipping — just delete the folder:
-
-```bash
-rm -rf ~/.claude/skills/dashmotion      # global
-rm -rf ./.claude/skills/dashmotion      # or project-local
-```
+| | GIF | Dashmotion (SVG/CSS) |
+|---|---|---|
+| File size | MBs | KBs |
+| Sharpness | fixed resolution | vector, infinite zoom |
+| Editable | re-render everything | ask Claude to change one box |
+| Loop | frame-perfect work | free |
+| Convert to GIF later | — | one command (`timecut`) or screen-record |
 
 ## How the animation works
 
@@ -123,6 +105,17 @@ dashmotion/                               # repo root
 ```
 
 `npx skills add` and the release zip ship only `skills/dashmotion/`; `eval/` and `examples/` stay in the repo. Both templates are complete working examples — open them in a browser right now.
+
+## Updating & uninstalling
+
+**Update** — re-run the install: `npx skills add csthink/dashmotion -a claude-code` (it overwrites in place). On claude.ai, delete the old skill and upload the new zip.
+
+**Uninstall:**
+
+```bash
+npx skills remove dashmotion            # installed via the skills CLI (add -g if global)
+rm -rf ~/.claude/skills/dashmotion      # installed by unzipping (use ./.claude/... for project-local)
+```
 
 ## Exporting to GIF / MP4
 
