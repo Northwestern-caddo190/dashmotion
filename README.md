@@ -70,6 +70,21 @@ unzip dashmotion.zip -d ~/.claude/skills/      # global
 unzip dashmotion.zip -d ./.claude/skills/      # or project-local
 ```
 
+### Already installed by unzipping? Migrate cleanly
+
+`npx skills add` symlinks `~/.claude/skills/dashmotion` to its own store — but it **won't overwrite a folder you unzipped there yourself**. It silently skips that link and prints "Done", leaving Claude Code on the old version. So if you installed an earlier version by hand, remove it first:
+
+```bash
+rm -rf ~/.claude/skills/dashmotion        # drop the old manual copy
+npx skills add csthink/dashmotion          # now it links the latest
+```
+
+Staying with manual installs is fine too — just clear the folder before re-unzipping, so removed files don't linger:
+
+```bash
+rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/
+```
+
 ## How the animation works
 
 **Flowing dashes** — animate `stroke-dashoffset` by exactly one dash period:
