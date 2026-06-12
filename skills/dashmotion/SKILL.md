@@ -88,7 +88,17 @@ A 3s capture loops seamlessly when all durations divide 3s — prefer 0.75s / 1.
 
 ## Step 6 — Structural self-check (before delivering)
 
-Hand-computed coordinates fail in predictable ways, and the connector layer fails far more often than the text layer. The file is not done when it's written — it's done when it passes this checklist. Re-read the SVG you just produced and verify each item **with arithmetic on the actual numbers** (write the comparisons out), not by eyeballing the code. Fix every violation and re-check until the list is clean.
+Hand-computed coordinates fail in predictable ways, and the connector layer fails far more often than the text layer. The file is not done when it's written — it's done when it passes this check.
+
+**Mechanized path (use it whenever `python3` is available):** run the bundled checker against the file you just wrote —
+
+```bash
+python3 <this-skill-directory>/scripts/check_diagram.py <your-file>.html
+```
+
+It deterministically detects the failure classes below (overlaps, connectors through boxes, dash-loop seams, out-of-bounds, dots off their line, black-fill, endpoint pierce, dangling begin refs, malformed XML). Fix every reported violation and re-run until it prints `0 violations`. Do NOT hand-walk the arithmetic when the script is available, do NOT write your own ad-hoc verification script, and **never verify by opening a browser or taking screenshots** — the script is the authority; items it can't see (label collisions, exact boundary padding, legend placement, and checklist item 6's mermaid fidelity recount) you still check by reading the numbers.
+
+**Prose fallback (only if `python3` is unavailable):** verify each item below **with arithmetic on the actual numbers** (write the comparisons out), not by eyeballing the code. Fix every violation and re-check until the list is clean.
 
 1. **Overlaps** — for every pair of same-row elements: `left.x + left.width + gap ≤ right.x` (gap ≥ 20 flow / 40 architecture). For every stacked pair: `top.y + top.height + gap ≤ bottom.y`. A boundary must fully contain its children with ≥ 20px padding on all four sides; partial overlap between any two boxes is always a bug.
 2. **Connectors through boxes** — walk every path segment by segment: between its endpoints it must not enter any node rect. Check every horizontal rail's `y` against the rects it passes (`rect.y ≤ y ≤ rect.y + height` means a collision); same for vertical drops' `x`. Fix by re-routing with the rail pattern, not by nudging boxes until something else breaks.

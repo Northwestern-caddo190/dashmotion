@@ -119,8 +119,11 @@ def parse_mermaid(text):
 
         s = re.sub(r'"[^"]*"', _mask, s)
 
-        # flowchart: split the line on arrows, keeping them
-        pat = "(" + "|".join(re.escape(a) for a in ARROWS) + r"|--\s*[^->]+?\s*-->" + ")"
+        # flowchart: split the line on arrows, keeping them. Labeled-arrow
+        # forms (`-- x -->`, `-. x .->`, `== x ==>`) come first so they win
+        # over their unlabeled prefixes.
+        pat = ("(" + r"--\s*[^->]+?\s*-->|-\.\s*[^.]+?\s*\.->|==\s*[^=>]+?\s*==>|"
+               + "|".join(re.escape(a) for a in ARROWS) + ")")
         parts = re.split(pat, s)
         if len(parts) == 1:
             nid, lbl = parse_node_token(_unmask(s))
@@ -146,9 +149,9 @@ def parse_mermaid(text):
                         ids.append(nid)
                 if prev_ids is not None and ids:
                     arrow = _unmask(parts[i - 1].strip())
-                    am = re.match(r"^--\s*(.+?)\s*-->$", arrow)
+                    am = re.match(r"^(?:--\s*(.+?)\s*-->|-\.\s*(.+?)\s*\.->|==\s*(.+?)\s*==>)$", arrow)
                     if am:
-                        edge_lbl = clean_label(am.group(1))
+                        edge_lbl = clean_label(am.group(1) or am.group(2) or am.group(3))
                     for a in prev_ids:
                         for b in ids:
                             edges.append((a, b, edge_lbl))
@@ -318,19 +321,40 @@ def main():
         print(f"FAIL  {out_path}  (svg not well-formed: {e})")
         sys.exit(1)
     blob = norm(" | ".join(texts))
+    # Architecture mode legally splits a long source label into a 13px label
+    # + 10px sublabel (two adjacent <text> elements) — match across elements
+    # as a fallback before declaring a label missing.
+    blob_loose = norm(" ".join(texts))
+
+    # Third fallback tier: the label/sublabel split may absorb the separator
+    # punctuation (`A：B` -> label "A" + sublabel "B"); compare with separator
+    # chars stripped. Limitation: also hides a genuinely dropped separator.
+    SEP = re.compile(r"[：:·•,，;；]")
+
+    def desep(s):
+        return " ".join(SEP.sub(" ", s).split())
+
+    def present(lbl):
+        n = norm(lbl)
+        if n in blob or n in blob_loose:
+            return True
+        return desep(n) in desep(blob_loose)
 
     failures = []
     # F1 node labels
     for nid, lbl in src["nodes"].items():
-        if lbl and norm(lbl) not in blob:
+        if lbl and not present(lbl):
             failures.append(f"F1 node label missing: {lbl!r}")
     # F2 edge labels
     for _, _, lbl in src["edges"]:
-        if lbl and norm(lbl) not in blob:
+        if lbl and not present(lbl):
             failures.append(f"F2 edge label missing: {lbl!r}")
-    # F3 group labels
+    # F3 group labels. Legend-like subgraphs may legally merge into
+    # dashmotion's own legend with their title omitted (contract exception,
+    # 2026-06-12) — exempt them; their entries are still covered by F1.
+    LEGEND_NAME = re.compile(r"图例|legend|key", re.I)
     for g in src["groups"]:
-        if g and norm(g) not in blob:
+        if g and not present(g) and not LEGEND_NAME.search(g):
             failures.append(f"F3 group label missing: {g!r}")
     # F4 edge count vs connector paths
     back = count_back_edges(src)

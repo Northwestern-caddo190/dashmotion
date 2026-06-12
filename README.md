@@ -109,7 +109,7 @@ What to expect:
 </circle>
 ```
 
-The skill encodes the layout arithmetic that makes generation reliable: branch-bar fan-out/fan-in, boundary nesting and padding rules, opaque masking under semi-transparent fills, legend placement, seamless-loop constraints, and z-ordering so dots vanish *into* the node they arrive at. Before delivering, it re-verifies the produced SVG against a structural checklist — overlapping boxes, connectors cutting through nodes, broken animation loops, out-of-viewBox coordinates — and fixes what it finds.
+The skill encodes the layout arithmetic that makes generation reliable: branch-bar fan-out/fan-in, boundary nesting and padding rules, opaque masking under semi-transparent fills, legend placement, seamless-loop constraints, and z-ordering so dots vanish *into* the node they arrive at. Before delivering, it verifies the produced SVG with a bundled deterministic checker (`scripts/check_diagram.py`, pure-stdlib Python — used when `python3` is available, with a manual checklist as fallback) — overlapping boxes, connectors cutting through nodes, broken animation loops, out-of-viewBox coordinates — and fixes what it finds. The *output* stays dependency-free either way: one HTML file, no libraries, no build step.
 
 ## Project layout
 
@@ -121,6 +121,8 @@ dashmotion/                               # repo root
 │   │   ├── flow-mode.md                  # Flowchart layout arithmetic
 │   │   ├── architecture-mode.md          # Semantic palette, boundaries, legend, request journeys
 │   │   └── mermaid-input.md              # Mermaid → dashmotion conversion rules + fidelity contract
+│   ├── scripts/
+│   │   └── check_diagram.py              # Deterministic structural checker (stdlib-only; optional)
 │   └── resources/
 │       ├── template-flow.html            # Working flow example
 │       └── template-architecture.html    # Working architecture example (AWS, animated request)
