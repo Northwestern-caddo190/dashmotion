@@ -98,12 +98,16 @@ dashmotion/
 
 ## 导出 GIF / MP4
 
+直接录屏(macOS ⌘⇧5)。动画周期均能整除 3 秒,录 3 秒即可无缝循环。带光点的图优先用录屏——原因见下方提示。
+
+无头 / 可脚本化:
+
 ```bash
 npx timecut your-diagram.html --viewport=1200,900 --duration=3 --fps=30 --output=out.mp4
 ffmpeg -i out.mp4 out.gif
 ```
 
-或者直接录屏(macOS ⌘⇧5)。动画周期均能整除 3 秒,录 3 秒即可无缝循环。
+> **`timecut` 与光点:** `<animateMotion>` 光点跑在 SVG 的 SMIL 时间线上,而 `timecut` 的虚拟时钟不驱动它——延迟启动的光点会停在 SVG 原点,在每一帧左上角留下杂散标记。`timecut` 对虚线连接线的流动没问题;但光点请改用实时录屏,或驱动实时无头录屏(如 Chrome DevTools 的 `Page.startScreencast`)。
 
 ## 可访问性
 

@@ -98,12 +98,16 @@ Both templates are complete working examples — open them in a browser right no
 
 ## Exporting to GIF / MP4
 
+Screen-record the open file (macOS ⌘⇧5). Animation durations divide 3s evenly, so a 3-second capture loops seamlessly. For any diagram with traveling dots this is the reliable path — see the note below.
+
+Headless / scriptable:
+
 ```bash
 npx timecut your-diagram.html --viewport=1200,900 --duration=3 --fps=30 --output=out.mp4
 ffmpeg -i out.mp4 out.gif
 ```
 
-Or screen-record (macOS ⌘⇧5). Animation durations divide 3s evenly, so a 3-second capture loops seamlessly.
+> **`timecut` + traveling dots:** the `<animateMotion>` dots run on SVG's SMIL timeline, which `timecut`'s virtual clock doesn't advance — a delayed-start dot stays parked at the SVG origin and leaves a stray mark in the top-left corner of every frame. `timecut` is fine for the dashed-connector flow; for the dots, screen-record in real time or drive a real-time headless screencast (e.g. Chrome DevTools `Page.startScreencast`) instead.
 
 ## Accessibility
 
