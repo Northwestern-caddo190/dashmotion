@@ -5,6 +5,33 @@ All notable changes to dashmotion. Versions follow the git tags; the skill's
 unchanged across every version: one self-contained HTML file — no libraries, no
 build step.
 
+## [Unreleased] — `--render` finished-file path (perf)
+
+Branch `feat/perf-render-path`. **Not released; pending local verification.**
+
+### Changed
+
+- **`layout.py --render out.html` writes the complete, ready-to-ship HTML** —
+  geometry + the mode style layer + the model's copy — instead of the model
+  hand-transcribing 35 rects and 38 path `d`s into a template. Plan A moved the
+  *coordinate arithmetic* out of the model; this moves the *boilerplate
+  transcription* out too. The semantic graph JSON now carries the human-facing copy
+  (`subtitle`, a 3-card `summary`, optional `footer`); the model authors semantics +
+  copy and runs the script, keeping final say by editing the JSON (re-render) or the
+  emitted file. `--emit-svg` is kept as an alias; the hand-transcribe path remains
+  the documented fallback when `python3` is unavailable.
+- **Step 5** rewritten to the no-transcription flow; **Step 6** unchanged (still the
+  authority — runs on the rendered file).
+
+### Performance
+
+- Generation output the model must write drops **~84% aggregate** across the 11-case
+  regression suite and **~79.5%** on the bianque-class benchmark (model emits 6.3 KB
+  of JSON instead of hand-writing 30.9 KB of HTML). Regression stays green: 11/11
+  `run_checks`, `check_diagram` 0 violations on all 12 graphs, `check_fidelity` PASS
+  on all 7 Mermaid cases + bianque. End-to-end wall-clock confirmation is the
+  local-test step (fresh medium-effort bianque, per the perf-gate protocol).
+
 ## 2.2.0 — Mermaid input + deterministic layout engine
 
 A **feature** release, not a patch.

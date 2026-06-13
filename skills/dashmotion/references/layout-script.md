@@ -2,9 +2,11 @@
 
 `layout.py` (pure Python stdlib, zero deps) does the coordinate arithmetic the
 mode references describe — row packing, branch gaps, boundary padding, orthogonal
-rail/lane routing — so you stop hand-computing coordinates. **You decide the
-semantics (types, tiers, grouping, journeys, emphasis); the script computes the
-geometry.**
+rail/lane routing — **and renders the finished HTML** (geometry + style layer +
+your copy). So you stop hand-computing coordinates *and* stop hand-transcribing
+them into a template. **You decide the semantics and the copy (types, tiers,
+grouping, journeys, emphasis, title/subtitle/summary); the script writes the
+file.**
 
 > **Treat `layout.py` as a black box — do NOT read its source.** This file is the
 > complete contract: what JSON to feed it, what geometry it returns, and how to
@@ -13,9 +15,13 @@ geometry.**
 > here is unclear, run it on a tiny graph and look at the output — don't open the source.
 
 ```
-python3 <skill-dir>/scripts/layout.py graph.json                  # geometry JSON -> stdout
-python3 <skill-dir>/scripts/layout.py graph.json --emit-svg r.html  # reference render (self-check)
+python3 <skill-dir>/scripts/layout.py graph.json --render out.html  # finished, ready-to-ship HTML
+python3 <skill-dir>/scripts/layout.py graph.json                    # geometry JSON -> stdout (fallback/inspection)
 ```
+
+`--render` is the path you use: it writes the complete deliverable. (`--emit-svg`
+is a legacy alias for the same thing. The bare geometry-JSON form is for the
+hand-transcribe fallback when there is no Python, and for poking at the numbers.)
 
 ## What the engine does for you (so you trust the output)
 
@@ -65,6 +71,11 @@ Boundaries come out as clean rectangles (checker passes) **iff** you author tier
 {
   "mode": "flow | architecture",
   "title": "short title for the header",
+  "subtitle": "one-line description under the title (optional)",
+  "summary": [                                     // ARCH: exactly 3 cards (optional; a neutral stub renders if omitted)
+    {"accent": "cyan|violet|rose", "title": "card title", "items": ["bullet", "bullet"]}
+  ],
+  "footer": "footer line (optional)",
   "nodes": [
     {
       "id": "A", "label": "verbatim label", "sublabel": "arch 2nd line, optional",
@@ -87,6 +98,8 @@ Authoring rules:
 - **Flow:** omit `tier`; set `shape` per node; give entry/exit `[*]` nodes `shape: "pill"`.
   Loops/self-loops are handled for you (see above).
 - **Architecture:** set `tier` on every node; obey the clean-boundary contract.
+  Group `kind`: namespaces / VPCs / regions → `region` (amber `8 4`); subnets /
+  inner zones → `subnet` (rose `4 4`). Details in `architecture-mode.md`.
 - **Edge kinds:** `sync` → animated solid; `async` (`-.->`) → `2 4` dotted, own
   keyframes, orange dots in arch; `main` (`==>`) → 1.5px emphasis + dot priority;
   `static` (`---`) → plain line, no marker, no animation.
@@ -97,8 +110,35 @@ Authoring rules:
   parentheses;** the fidelity check (Step 6) compares them exactly. A lone emphasis class
   (`hot`, a color) is decoration — drop it.
 - **Journeys:** 2–4 end-to-end paths whose `hops` are existing forward edges.
+- **Copy:** write `title`/`subtitle` always; in architecture write a `summary` of
+  exactly three cards (this is the model's voice — describe the request path, the
+  data layer, the boundaries, in the diagram's own terms). Omit it and a neutral
+  three-card stub renders instead. Legend wording for preserved classDef variants
+  goes in `legendExtra` (verbatim from the source — Step 6 checks it).
 
-## Output — geometry JSON you transcribe
+## Output — the finished file (`--render`)
+
+With `--render out.html` the script writes the complete, self-contained deliverable
+and there is nothing to transcribe. It applies, from your JSON, all of:
+
+- geometry — every `x/y/w/h`, every orthogonal path `d`, every group box, viewBox;
+- the style layer — node fills/strokes by `type`, the opaque-base + styled-rect
+  masking pair (architecture), `flow`/`flow-async`/`flow-auth` connector classes by
+  edge `kind`, per-journey dot colours with staggered chained `begin`;
+- your copy — `title`, `subtitle`, the three `summary` cards, the legend (type
+  swatches + `request in flight` + any `legendExtra`);
+- the boilerplate — CSS, the ⏯ pause toggle, the reduced-motion script, `role`/
+  `<title>`/`<desc>`.
+
+Edges with `"loop": true` come out as the `↻ label` annotation, not a path. Run
+Step 6 on the file; to change anything, edit the JSON and re-render, or hand-edit
+the emitted HTML for a one-off tweak.
+
+### Geometry JSON (fallback / inspection only)
+
+Run without `--render` to print geometry instead of writing a file — the shape the
+hand-transcribe fallback consumes when there is no Python, and a way to inspect the
+numbers:
 
 ```json
 {
@@ -112,24 +152,8 @@ Authoring rules:
 }
 ```
 
-### Worked example (real output)
-
-Input `{ "mode":"flow", "nodes":[{"id":"A","label":"Start","shape":"pill"},{"id":"B","label":"Do work","shape":"step"},{"id":"C","label":"Done","shape":"pill"}], "edges":[{"from":"A","to":"B"},{"from":"B","to":"C"}], "journeys":[{"hops":[["A","B"],["B","C"]]}] }`
-gives `width 178, height 314`,
-`nodes.A = {x:34, y:34, w:110, h:40, shape:"pill", labelLines:["Start"]}`,
-`edges[0] = {from:"A", to:"B", kind:"sync", d:"M89 74 V126", marker:true}`,
-`journeys[0].hops[0] = {from:"A", to:"B", d:"M89 74 V126"}`. You wrap A's rect at
-those exact numbers, draw the connector with that exact `d`, and animate the dot
-along the same `d` — no arithmetic of your own.
-
-## Transcription
-
-**Copy every `x/y/w/h` and every path `d` exactly as printed — do not recompute,
-round, or re-derive a coordinate by hand;** that arithmetic is the cost the script
-removes, and Step 6's checker (not your re-checking) is the authority. Your remaining
-work is the *style* layer from the mode reference (fills/strokes by type, the
-opaque-base + styled-rect masking pair, connector colors and the
-`flow`/`flow-async`/`flow-auth` classes by `kind`, dot colors) plus the human-facing
-copy (title, subtitle, summary cards, legend wording) and staggering journey dot
-`begin`. Edges with `"loop": true` render as the `↻ label` annotation, not a path.
-`--emit-svg` shows one valid rendering to diff against.
+In the fallback you wrap each node's rect at those exact numbers, draw each
+connector with that exact `d`, animate dots along the same `d` — **copy every
+coordinate verbatim, never recompute or round** — and apply the style + copy layers
+by hand. That transcription is the cost `--render` removes; only do it when Python
+is unavailable.

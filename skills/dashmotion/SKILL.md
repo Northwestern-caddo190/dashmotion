@@ -74,17 +74,20 @@ Mixed request ("show our microservices AND how an order flows through them") →
 
 ## Step 5 — Produce the file
 
-dashmotion ships a deterministic layout engine, `scripts/layout.py` (pure stdlib). It does the coordinate arithmetic the mode references describe — row packing, branch gaps, boundary padding, orthogonal rail/lane routing — so you do **not** hand-compute coordinates (the slow part). You decide the *semantics*; the script computes the *geometry*. Full contract in `references/layout-script.md`.
+dashmotion ships a deterministic layout engine, `scripts/layout.py` (pure stdlib). It does the coordinate arithmetic the mode references describe — row packing, branch gaps, boundary padding, orthogonal rail/lane routing — **and renders the finished HTML**: geometry + the mode style layer + your copy. So you do **not** hand-compute coordinates *or* hand-transcribe 35 rects and 38 path `d`s into a template (both are slow). You decide the *semantics and the copy*; the script writes the *file*. Full contract in `references/layout-script.md`.
 
 **Script path — use it whenever `python3` is available:**
 
-1. Parse the request — or the Mermaid source per `references/mermaid-input.md` — into the semantic graph JSON of `references/layout-script.md`: nodes (`type`/`shape`, `tier` for architecture, `group`), edges (`kind`), groups, journeys, any `legendExtra`. **This is your judgement layer** — types, tiers, grouping, which journeys matter, emphasis, classDef retention.
-2. Write it to a temp `graph.json` and run `python3 <this-skill-directory>/scripts/layout.py graph.json`. It prints geometry JSON: viewBox `width`/`height`, each node's `x/y/w/h` + wrapped `labelLines`, each edge's path `d`, group boxes, journey hops each carrying the connector `d` to animate along.
-3. **Transcribe the geometry verbatim into the mode template.** Copy every `x/y/w/h` and every path `d` exactly as printed — do NOT recompute, round, or hand-check a single coordinate; that arithmetic is the cost the script exists to remove, and Step 6 is the authority on correctness. Apply only the mode reference's *style* layer to the geometry: node fills/strokes by type, the opaque-base + styled-rect masking pair (architecture), connector colors and the `flow`/`flow-async`/`flow-auth` classes by edge `kind`, dot colors per journey. Keep the template's CSS, pause toggle, and reduced-motion script intact.
-4. Fill the human-facing copy the script stubs — title, subtitle, summary cards (architecture), legend wording — and stagger journey dot `begin` so each request visibly hops tier by tier. Edges flagged `"loop": true` render as the `↻ label` annotation, not a path.
-5. Save as `<topic>-dashmotion.html`. (`layout.py graph.json --emit-svg ref.html` renders the geometry to a complete reference diagram to diff against — never the delivered file.)
+1. Parse the request — or the Mermaid source per `references/mermaid-input.md` — into the semantic graph JSON of `references/layout-script.md`. **This is your judgement layer**, and it carries everything the diagram needs:
+   - structure: nodes (`type`/`shape`, `tier` for architecture, `group`), edges (`kind`), groups, journeys, any `legendExtra`, classDef retention;
+   - **copy**: `title`, `subtitle`, and (architecture) a `summary` of exactly three cards (`accent` cyan/violet/rose, `title`, `items[]`) — the human-facing wording is yours to write, here, in the JSON.
+2. Write it to a temp `graph.json` and run `python3 <this-skill-directory>/scripts/layout.py graph.json --render <topic>-dashmotion.html`. The script computes the geometry, applies the style layer (node fills/strokes by `type`, the opaque-base + styled-rect masking pair, `flow`/`flow-async`/`flow-auth` connector classes by edge `kind`, per-journey dot colors with staggered, chained `begin`), drops in your copy, and writes the **complete, self-contained, ready-to-ship file**. Edges flagged `"loop": true` are rendered as the `↻ label` annotation, not a path.
+3. Run Step 6 against that file. The renderer is structurally sound by construction, but Step 6 is still the authority — run it.
+4. You keep final say over everything visual: to adjust wording, emphasis, journeys, or types, **edit the JSON and re-render** (cheap and deterministic); to tweak a label or a colour by hand, edit the emitted file directly. What you no longer do is photocopy coordinates — the script owns geometry (plan A) and now the boilerplate around it.
 
-**Hand-computed fallback — only when `python3` is unavailable:** do the layout arithmetic from the mode reference explicitly before writing coordinates, copy the template, replace SVG content / title / header / legend / summary cards (keep CSS + pause toggle + reduced-motion script), pick 3–6 dot paths copying connector `d` values and staggering `begin`. This is the pre-2.2 path.
+Do not author the JSON, then *also* hand-write the HTML — that re-incurs the exact transcription cost this path removes. Render, check, deliver.
+
+**Hand-computed fallback — only when `python3` is unavailable:** do the layout arithmetic from the mode reference explicitly before writing coordinates, copy the template, replace SVG content / title / header / legend / summary cards (keep CSS + pause toggle + reduced-motion script), pick 3–6 dot paths copying connector `d` values and staggering `begin`. This is the pre-2.2 path — slow, but it needs no Python.
 
 Tell the user the file opens directly in any browser.
 
@@ -96,7 +99,7 @@ A 3s capture loops seamlessly when all durations divide 3s — prefer 0.75s / 1.
 
 ## Step 6 — Structural self-check (before delivering)
 
-Hand-computed — or hand-transcribed — coordinates fail in predictable ways, and the connector layer fails far more often than the text layer. The file is not done when it's written — it's done when it passes this check.
+The file is not done when it's written — it's done when it passes this check. The `--render` output is structurally sound by construction, but the check is still mandatory (it's also your guard for the hand-computed fallback, whose coordinates fail in predictable ways — the connector layer far more often than the text layer). Verify; don't assume.
 
 **Mechanized path (use it whenever `python3` is available):** run the bundled checker against the file you just wrote —
 
