@@ -5,9 +5,11 @@ All notable changes to dashmotion. Versions follow the git tags; the skill's
 unchanged across every version: one self-contained HTML file — no libraries, no
 build step.
 
-## [Unreleased] — `--render` finished-file path (perf)
+## 2.2.1 — Performance: layout.py renders the finished file
 
-Branch `feat/perf-render-path`. **Not released; pending local verification.**
+A **performance** patch, not a feature: same inputs, same self-contained-HTML
+output contract — the generator just does more of the work, so diagrams come out
+faster.
 
 ### Changed
 
@@ -38,8 +40,9 @@ Branch `feat/perf-render-path`. **Not released; pending local verification.**
   regression suite and **~79.5%** on the bianque-class benchmark (model emits 6.3 KB
   of JSON instead of hand-writing 30.9 KB of HTML). Regression stays green: 11/11
   `run_checks`, `check_diagram` 0 violations on all 12 graphs, `check_fidelity` PASS
-  on all 7 Mermaid cases + bianque. End-to-end wall-clock confirmation is the
-  local-test step (fresh medium-effort bianque, per the perf-gate protocol).
+  on all 7 Mermaid cases + bianque. Confirmed end-to-end in local testing: a fresh
+  medium-effort bianque (35 nodes / 38 edges) generated in ~3 min — well inside the
+  8-min perf-gate, down from ~5 min — with structure + fidelity verified.
 
 ## 2.2.0 — Mermaid input + deterministic layout engine
 
