@@ -43,10 +43,10 @@ Prefer the zip on Claude Code? `rm -rf ~/.claude/skills/dashmotion && unzip dash
 No Claude client tells you when a skill has a new version — you pull updates yourself. On **Claude Code**, one command refreshes it in place:
 
 ```bash
-npx skills update -g -y          # scope it to one skill: npx skills update dashmotion -g -y
+npx skills update dashmotion -g -y
 ```
 
-Drop `-g` for a project-local install; re-running the install command works too. On **claude.ai** there's no in-place update — delete the old skill and upload the new `dashmotion.zip`.
+Name the skill: a bare `npx skills update -g -y` updates **every** globally-installed skill, not just dashmotion — which may pull updates into others you didn't mean to touch. Drop `-g` for a project-local install; re-running the install command works too. On **claude.ai** there's no in-place update — delete the old skill and upload the new `dashmotion.zip`.
 
 **Check which version you're on** — it lives in the skill's `SKILL.md`; compare it against the latest [release](../../releases) (`npx skills list` shows the path, not the version):
 

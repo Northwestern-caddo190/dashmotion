@@ -43,10 +43,10 @@ npx skills add csthink/dashmotion -a claude-code -g
 没有任何 Claude 端会提示你 skill 出了新版——更新得自己拉。在 **Claude Code** 上,一条命令原地刷新:
 
 ```bash
-npx skills update -g -y          # 只更新这一个:npx skills update dashmotion -g -y
+npx skills update dashmotion -g -y
 ```
 
-项目级安装去掉 `-g`;重跑安装命令也行。**claude.ai** 没有原地更新——删掉旧 skill,重新上传新的 `dashmotion.zip`。
+**带上 skill 名**:裸 `npx skills update -g -y` 会更新你**所有**全局 skill,不只是 dashmotion,可能顺带升级了你本不想动的别的 skill。项目级安装去掉 `-g`;重跑安装命令也行。**claude.ai** 没有原地更新——删掉旧 skill,重新上传新的 `dashmotion.zip`。
 
 **查看当前装的是哪个版本** —— 版本号在 skill 的 `SKILL.md` 里,跟最新 [release](../../releases) 比一下就知道是否最新(`npx skills list` 只显示路径、不显示版本):
 
