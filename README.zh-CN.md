@@ -7,6 +7,12 @@
 
 **会流动的图。** 一个 Claude AI skill,把一段描述——纯文字**或** Mermaid 源码——变成带动画的技术图表:虚线沿执行方向流动、光点像真实请求一样在系统中穿行,输出为单个自包含的 HTML/SVG 文件。也就是现代基础设施产品官网(Diagrid、Temporal、Inngest)上那种动效。
 
+![一次请求在架构图中穿行——客户端 → 网关 → 服务 → 数据库,再返回](examples/images/architecture-demo.zh.gif)
+
+**[▶ 在线看真实示例 →](https://csthink.github.io/dashmotion/)** —— 未经编辑的真实产物,不是视频。
+
+两种模式 —— 用纯文字描述一段工作流或一个系统(或粘一段 Mermaid),得到一个打开即动的自包含 HTML 文件:
+
 | Flow 模式 | Architecture 模式 |
 |---|---|
 | ![flow demo](examples/images/flow-demo.zh.gif) | ![architecture demo](examples/images/architecture-demo.zh.gif) |
@@ -86,7 +92,13 @@ rm -rf ~/.claude/skills/dashmotion      # 手动解压装的(项目级用 ./.cla
 
 ## 快速开始
 
-装好之后,直接问。下面两个就是顶部两个 demo 用的 prompt——粘给 Claude 就能复现:
+装好之后,直接问——一句话就能看到效果:
+
+```
+用 dashmotion 画一个简单的三步登录流程。
+```
+
+下面两个更长的 prompt 是顶部两个 demo 用的——粘给 Claude 就能复现:
 
 **Flow 模式** —— 上方左边那个 demo:
 

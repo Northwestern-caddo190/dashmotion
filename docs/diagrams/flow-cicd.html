@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI/CD Pipeline — Animated Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: #020617;
+    min-height: 100vh;
+    padding: 2rem;
+    color: #e2e8f0;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  .header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.4rem; }
+  .pulse-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #34d399;
+  }
+  h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+  .subtitle { color: #64748b; font-size: 0.8rem; margin-bottom: 1.5rem; }
+  .diagram-card {
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    background:
+      linear-gradient(#02061700, #02061700),
+      repeating-linear-gradient(0deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      repeating-linear-gradient(90deg, #0f1b33 0 0.5px, transparent 0.5px 40px),
+      #030a1c;
+    padding: 1.5rem 1rem;
+    position: relative;
+  }
+  .pause-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: transparent; border: 1px solid #1e293b; color: #64748b;
+    border-radius: 6px; padding: 4px 10px; font: inherit; font-size: 11px;
+    cursor: pointer;
+  }
+  .pause-btn:hover { color: #e2e8f0; border-color: #334155; }
+  .footer { color: #475569; font-size: 0.7rem; margin-top: 1rem; }
+
+  .flow { stroke-dasharray: 5 5; }
+  @media (prefers-reduced-motion: no-preference) {
+    .flow { animation: dashmove 0.75s linear infinite; }
+    .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+  }
+  @keyframes dashmove { to { stroke-dashoffset: -10; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  body.paused .flow, body.paused .pulse-dot { animation-play-state: paused; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="pulse-dot"></div>
+    <h1>CI/CD pipeline workflow</h1>
+  </div>
+  <p class="subtitle">Commit → parallel checks → image build → security scan → approval gate → canary → production</p>
+
+  <div class="diagram-card">
+    <button class="pause-btn" id="pauseBtn" aria-pressed="false">⏸ pause</button>
+
+    <svg id="flowsvg" width="100%" viewBox="0 0 800 1010" role="img">
+      <title>CI/CD pipeline animated workflow diagram</title>
+      <desc>A commit fans out to lint, unit tests and integration tests in parallel; all three merge into building the Docker image, then a security scan, then a manual approval gate. Rejection notifies the author and ends. Approval deploys a canary whose metrics are checked: regression triggers a rollback that returns to the approval gate; passing promotes to production and sends a Slack notification. Dashed connectors animate in the direction of execution.</desc>
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- ===== CONNECTORS (drawn first: nodes mask their ends) ===== -->
+      <g stroke="#10b981" stroke-width="1" opacity="0.85" fill="none">
+        <!-- COMMIT fan-out to 3 parallel checks (shared rail y=108) -->
+        <path class="flow" d="M400 80 V108 H255 V128" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 80 V128" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 80 V108 H580 V128" marker-end="url(#arrow)"/>
+        <!-- Fan-in merge into Build Docker Image (shared rail y=204, one arrowhead) -->
+        <path class="flow" d="M255 176 V204 H400 V224"/>
+        <path class="flow" d="M400 176 V224" marker-end="url(#arrow)"/>
+        <path class="flow" d="M580 176 V204 H400 V224"/>
+        <!-- Build -> Security Scan -->
+        <path class="flow" d="M400 272 V324" marker-end="url(#arrow)"/>
+        <!-- Security Scan -> Manual Approval -->
+        <path class="flow" d="M400 372 V424" marker-end="url(#arrow)"/>
+        <!-- Approval: rejected (left) / approved (down), rail y=500 -->
+        <path class="flow" d="M400 472 V500 H185 V520" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 472 V520" marker-end="url(#arrow)"/>
+        <!-- Notify Author -> END (rejected) -->
+        <path class="flow" d="M185 568 V620" marker-end="url(#arrow)"/>
+        <!-- Deploy Canary -> Canary Metrics Check -->
+        <path class="flow" d="M400 568 V620" marker-end="url(#arrow)"/>
+        <!-- Metrics: pass (down) / regress (right), rail y=696 -->
+        <path class="flow" d="M400 668 V716" marker-end="url(#arrow)"/>
+        <path class="flow" d="M400 668 V696 H620 V716" marker-end="url(#arrow)"/>
+        <!-- Rollback return loop: side exit, back up into approval gate's right edge -->
+        <path class="flow" d="M675 742 H720 V450 H489" marker-end="url(#arrow)"/>
+        <!-- Promote -> Slack Notification -->
+        <path class="flow" d="M400 764 V816" marker-end="url(#arrow)"/>
+        <!-- Slack Notification -> END (success) -->
+        <path class="flow" d="M400 864 V916" marker-end="url(#arrow)"/>
+      </g>
+
+      <!-- Branch labels -->
+      <g font-family="JetBrains Mono, monospace" fill="#64748b" font-size="10">
+        <text x="290" y="494" text-anchor="middle">rejected</text>
+        <text x="410" y="510">approved</text>
+        <text x="510" y="690" text-anchor="middle">regress</text>
+        <text x="410" y="706">pass</text>
+        <text x="605" y="442" text-anchor="middle">↻ re-approval</text>
+      </g>
+
+      <!-- ===== TRAVELING DOTS (path = connector d, staggered begin) ===== -->
+      <g fill="#34d399">
+        <circle r="3.5" class="dot"><animateMotion dur="2s" repeatCount="indefinite" path="M400 80 L400 108 L255 108 L255 128"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="1.5s" begin="0.6s" repeatCount="indefinite" path="M400 80 L400 128"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2s" begin="1.2s" repeatCount="indefinite" path="M400 80 L400 108 L580 108 L580 128"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="2s" begin="0.5s" repeatCount="indefinite" path="M580 176 L580 204 L400 204 L400 224"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="1.5s" begin="0.3s" repeatCount="indefinite" path="M400 864 L400 916"/></circle>
+      </g>
+
+      <!-- ===== NODES (drawn last, on top) ===== -->
+      <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+        <!-- COMMIT (start pill) -->
+        <rect x="340" y="40" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="400" y="65" fill="#e2e8f0" font-size="13" font-weight="600">COMMIT</text>
+
+        <!-- Parallel checks -->
+        <rect x="200" y="132" width="110" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="255" y="159" fill="#e2e8f0" font-size="13" font-weight="500">Lint</text>
+
+        <rect x="340" y="132" width="120" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="159" fill="#e2e8f0" font-size="13" font-weight="500">Unit Tests</text>
+
+        <rect x="490" y="132" width="180" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="580" y="159" fill="#e2e8f0" font-size="13" font-weight="500">Integration Tests</text>
+
+        <!-- Build Docker Image -->
+        <rect x="305" y="228" width="190" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="247" fill="#e2e8f0" font-size="13" font-weight="500">Build Docker Image</text>
+        <text x="400" y="261" fill="#64748b" font-size="10">docker build &amp; push</text>
+
+        <!-- Security Scan -->
+        <rect x="325" y="328" width="150" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="347" fill="#e2e8f0" font-size="13" font-weight="500">Security Scan</text>
+        <text x="400" y="361" fill="#64748b" font-size="10">image CVEs</text>
+
+        <!-- Manual Approval (decision · human wait, amber) -->
+        <rect x="315" y="428" width="170" height="44" rx="8" fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-dasharray="4 3"/>
+        <text x="400" y="447" fill="#e2e8f0" font-size="13" font-weight="500">Manual Approval</text>
+        <text x="400" y="461" fill="#64748b" font-size="10">human gate</text>
+
+        <!-- Notify Author (rejected branch) -->
+        <rect x="110" y="524" width="150" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="185" y="551" fill="#e2e8f0" font-size="13" font-weight="500">Notify Author</text>
+
+        <!-- END (rejected) pill -->
+        <rect x="130" y="624" width="110" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="185" y="649" fill="#e2e8f0" font-size="13" font-weight="600">END</text>
+
+        <!-- Deploy Canary -->
+        <rect x="325" y="524" width="150" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="543" fill="#e2e8f0" font-size="13" font-weight="500">Deploy Canary</text>
+        <text x="400" y="557" fill="#64748b" font-size="10">5% traffic</text>
+
+        <!-- Canary Metrics Check (decision) -->
+        <rect x="295" y="624" width="210" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981" stroke-dasharray="4 3"/>
+        <text x="400" y="643" fill="#e2e8f0" font-size="13" font-weight="500">Canary Metrics Check</text>
+        <text x="400" y="657" fill="#64748b" font-size="10">error rate · latency</text>
+
+        <!-- Promote to Production -->
+        <rect x="295" y="720" width="210" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="747" fill="#e2e8f0" font-size="13" font-weight="500">Promote to Production</text>
+
+        <!-- Rollback (regress branch) -->
+        <rect x="565" y="720" width="110" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="620" y="739" fill="#e2e8f0" font-size="13" font-weight="500">Rollback</text>
+        <text x="620" y="753" fill="#64748b" font-size="10">revert canary</text>
+
+        <!-- Slack Notification -->
+        <rect x="305" y="820" width="190" height="44" rx="8" fill="rgba(16,185,129,0.04)" stroke="#10b981"/>
+        <text x="400" y="839" fill="#e2e8f0" font-size="13" font-weight="500">Slack Notification</text>
+        <text x="400" y="853" fill="#64748b" font-size="10">#deployments</text>
+
+        <!-- END (success) pill -->
+        <rect x="340" y="920" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="400" y="945" fill="#e2e8f0" font-size="13" font-weight="600">END</text>
+      </g>
+    </svg>
+  </div>
+
+  <p class="footer">Generated 2026-06-11 · dashmotion · flow mode</p>
+</div>
+
+<script>
+  (function () {
+    var svg = document.getElementById('flowsvg');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.querySelectorAll('.dot').forEach(function (d) { d.remove(); });
+      document.getElementById('pauseBtn').remove();
+      return;
+    }
+    var btn = document.getElementById('pauseBtn');
+    var paused = false;
+    btn.addEventListener('click', function () {
+      paused = !paused;
+      document.body.classList.toggle('paused', paused);
+      paused ? svg.pauseAnimations() : svg.unpauseAnimations();
+      btn.textContent = paused ? '▶ play' : '⏸ pause';
+      btn.setAttribute('aria-pressed', String(paused));
+    });
+  })();
+</script>
+</body>
+</html>

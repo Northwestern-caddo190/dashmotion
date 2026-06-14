@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashmotion — diagrams that move (live demo)</title>
+<meta name="description" content="Live, unedited outputs of dashmotion: a Claude skill that turns a description or Mermaid source into a self-contained animated HTML/SVG diagram. No JavaScript, a few KB, loops forever.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://csthink.github.io/dashmotion/">
+<meta property="og:title" content="Dashmotion — diagrams that move">
+<meta property="og:description" content="Live, unedited outputs. Animated technical diagrams as one self-contained HTML file — no JavaScript, a few KB, loops forever.">
+<meta property="og:image" content="https://csthink.github.io/dashmotion/og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://csthink.github.io/dashmotion/og-card.png">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #020617; --panel: #060d20; --line: #1e293b;
+    --ink: #e2e8f0; --muted: #64748b; --muted2: #94a3b8; --cyan: #22d3ee;
+  }
+  body {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--bg); color: var(--ink); line-height: 1.6;
+    padding: 3rem 1.25rem 5rem;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  header { margin-bottom: 2.5rem; }
+  .brand { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+  .brand .dot {
+    width: 11px; height: 11px; border-radius: 50%; background: var(--cyan);
+    box-shadow: 0 0 12px 2px rgba(34, 211, 238, 0.6);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .brand .dot { animation: pulse 2s ease-in-out infinite; }
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  .brand h1 { font-size: 1.35rem; font-weight: 600; letter-spacing: -0.01em; }
+  .tagline { font-size: 1.05rem; color: var(--ink); margin-bottom: 0.5rem; }
+  .lede { color: var(--muted2); font-size: 0.86rem; max-width: 72ch; }
+  .lede b { color: var(--ink); font-weight: 500; }
+  .links { margin-top: 1.25rem; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  a.btn {
+    display: inline-block; text-decoration: none; font-size: 0.8rem;
+    color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0.5rem 0.9rem; transition: border-color 0.15s, color 0.15s;
+  }
+  a.btn:hover { border-color: #334155; color: var(--cyan); }
+  a.btn.primary { border-color: rgba(34, 211, 238, 0.4); color: var(--cyan); }
+
+  .install {
+    margin: 1.5rem 0 0; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 0.85rem 1rem; font-size: 0.82rem;
+    color: var(--muted2); overflow-x: auto; white-space: nowrap;
+  }
+  .install .p { color: var(--muted); user-select: none; }
+  .install code { color: var(--ink); }
+
+  section.demo { margin-top: 2.75rem; }
+  .demo-head { display: flex; align-items: baseline; gap: 0.7rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+  .mode {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--cyan); border: 1px solid rgba(34, 211, 238, 0.35);
+    border-radius: 5px; padding: 0.1rem 0.45rem;
+  }
+  .demo-head h2 { font-size: 0.98rem; font-weight: 500; }
+  .prompt {
+    color: var(--muted2); font-size: 0.8rem; margin-bottom: 0.85rem;
+    border-left: 2px solid var(--line); padding-left: 0.8rem;
+  }
+  .prompt .q { color: var(--muted); }
+  .frame {
+    border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+    background: var(--bg);
+  }
+  .frame iframe { width: 100%; border: 0; display: block; background: var(--bg); }
+  .frame-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 1px solid var(--line); padding: 0.5rem 0.9rem;
+    font-size: 0.72rem; color: var(--muted);
+  }
+  .frame-foot a { color: var(--muted2); text-decoration: none; }
+  .frame-foot a:hover { color: var(--cyan); }
+
+  footer {
+    margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 0.78rem;
+  }
+  footer a { color: var(--muted2); text-decoration: none; }
+  footer a:hover { color: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span><h1>dashmotion</h1></div>
+    <p class="tagline">Diagrams that move.</p>
+    <p class="lede">A Claude skill that turns a plain-English description — or a Mermaid source — into a single self-contained HTML file where the connectors flow and requests travel through the system as moving dots. <b>Everything below is a real, unedited output</b> — pure SVG/CSS, no JavaScript, a few KB each, looping in your browser right now. This page just embeds the files.</p>
+    <div class="links">
+      <a class="btn primary" href="https://github.com/csthink/dashmotion">GitHub repo →</a>
+      <a class="btn" href="https://github.com/csthink/dashmotion#install">Install</a>
+      <a class="btn" href="https://github.com/csthink/dashmotion/blob/main/docs/how-it-works.md">How it works</a>
+    </div>
+    <div class="install"><span class="p">$ </span><code>npx skills add csthink/dashmotion -a claude-code -g</code></div>
+  </header>
+
+  <section class="demo">
+    <div class="demo-head"><span class="mode">Architecture</span><h2>Kubernetes microservices, with a checkout request in flight</h2></div>
+    <p class="prompt"><span class="q">prompt: </span>Draw our Kubernetes microservices platform — NGINX ingress, services in a shop namespace, a Kafka bus to async workers, Postgres and Mongo, an observability namespace — and animate a checkout request from ingress through cart and payments to Postgres.</p>
+    <div class="frame">
+      <iframe src="diagrams/architecture-k8s.html" height="760" title="Animated Kubernetes architecture diagram"></iframe>
+      <div class="frame-foot"><span>one .html file · no JS · loops forever</span><a href="diagrams/architecture-k8s.html" target="_blank" rel="noopener">open full page ↗</a></div>
+    </div>
+  </section>
+
+  <section class="demo">
+    <div class="demo-head"><span class="mode">Flow</span><h2>CI/CD pipeline, executing from commit to production</h2></div>
+    <p class="prompt"><span class="q">prompt: </span>Visualize our CI/CD pipeline: a commit runs lint, unit and integration tests in parallel; all three merge into building a Docker image; then a security scan; then deploy to staging; then a manual approval gate — approved deploys to production and posts to Slack, rejected notifies the author.</p>
+    <div class="frame">
+      <iframe src="diagrams/flow-cicd.html" height="1200" title="Animated CI/CD pipeline flow diagram"></iframe>
+      <div class="frame-foot"><span>dashed connectors stream in the direction of execution</span><a href="diagrams/flow-cicd.html" target="_blank" rel="noopener">open full page ↗</a></div>
+    </div>
+  </section>
+
+  <section class="demo">
+    <div class="demo-head"><span class="mode">Flow · state machine</span><h2>A signup state machine</h2></div>
+    <p class="prompt"><span class="q">prompt: </span>A signup state machine: pending → verifying email → active, with resend and expiry transitions and a failed branch.</p>
+    <div class="frame">
+      <iframe src="diagrams/flow-signup-state.html" height="1240" title="Animated signup state machine diagram"></iframe>
+      <div class="frame-foot"><span>also converts a static Mermaid stateDiagram-v2 into this</span><a href="diagrams/flow-signup-state.html" target="_blank" rel="noopener">open full page ↗</a></div>
+    </div>
+  </section>
+
+  <footer>
+    MIT · built on <a href="https://github.com/Cocoon-AI/architecture-diagram-generator">Cocoon-AI's static architecture-diagram skill</a> (the one thing added: the diagram moves) · <a href="https://github.com/csthink/dashmotion">github.com/csthink/dashmotion</a>
+  </footer>
+</div>
+<script>
+  // On the live site the diagrams are served same-origin, so each iframe can be
+  // sized to its own content for an exact fit. Locally (file://) this is blocked
+  // by the same-origin policy and silently falls back to the height attributes.
+  document.querySelectorAll('.frame iframe').forEach(function (f) {
+    function fit() {
+      try { f.style.height = f.contentWindow.document.documentElement.scrollHeight + 'px'; }
+      catch (e) { /* keep the fallback height attribute */ }
+    }
+    f.addEventListener('load', function () { fit(); setTimeout(fit, 600); });
+  });
+</script>
+</body>
+</html>

@@ -7,6 +7,12 @@ English | [简体中文](README.zh-CN.md)
 
 **Diagrams that move.** A Claude AI skill that turns a plain-English description — or a Mermaid source — into an animated technical diagram: a self-contained HTML/SVG file where dashed connectors stream in the direction of execution and light dots travel through the system like requests in flight. The style you see on modern infra landing pages (Diagrid, Temporal, Inngest).
 
+![A request animating through an architecture diagram — client to gateway to services to database, then back](examples/images/architecture-demo.gif)
+
+**[▶ Watch real diagrams run live →](https://csthink.github.io/dashmotion/)** — unedited skill output, not a video.
+
+Two modes — describe a workflow or a system in plain English (or paste Mermaid), and get one self-contained HTML file that's already moving:
+
 | Flow mode | Architecture mode |
 |---|---|
 | ![flow demo](examples/images/flow-demo.gif) | ![architecture demo](examples/images/architecture-demo.gif) |
@@ -86,7 +92,13 @@ rm -rf ~/.claude/skills/dashmotion      # installed by unzipping (use ./.claude/
 
 ## Quick start
 
-Then just ask. These two prompts generated the demos at the top — paste either to reproduce it:
+Then just ask — one sentence is enough to see it work:
+
+```
+Use dashmotion to draw a simple 3-step login flow.
+```
+
+The two longer prompts below generated the demos at the top — paste either to reproduce it:
 
 **Flow** — the left demo:
 
