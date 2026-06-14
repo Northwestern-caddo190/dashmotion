@@ -5,6 +5,29 @@ All notable changes to dashmotion. Versions follow the git tags; the skill's
 unchanged across every version: one self-contained HTML file — no libraries, no
 build step.
 
+## Versioning
+
+Semantic versioning, with one project-specific rule of thumb: the dividing line is
+the **user-facing capability surface** — what you can ask for and what you get back —
+not how the generator produces it.
+
+- **MAJOR** (`x.0.0`) — the output contract changes, or the skill is redefined
+  wholesale. Reserved for a break in the "one self-contained HTML file" promise, or a
+  next-generation rewrite (`2.0.0`). Hasn't happened within v2.
+- **MINOR / feature** (`2.x.0`) — a new thing the user can *do*: a new accepted
+  **input**, a new **output** mode or style, or a new refinement they can ask for. The
+  capability surface grows; the output contract holds. *Precedent:* `2.2.0` added
+  Mermaid input — "a feature release, not a patch."
+- **PATCH** (`2.2.x`) — everything else: performance, generator/authoring-workflow
+  internals, layout or aesthetic refinement, bug fixes, docs. Same inputs in, same
+  kind of output out — just faster, better, or correct. *Precedent:* `2.2.1` rewired
+  the generator so `layout.py` renders the finished file — a large internal change,
+  but the user asks for nothing new and gets the same contract, so "a performance
+  patch, not a feature."
+
+The test, in one line: **could a user ask for something they couldn't before, or get
+a materially different kind of artifact? → minor; otherwise → patch.**
+
 ## 2.2.1 — Performance: layout.py renders the finished file
 
 A **performance** patch, not a feature: same inputs, same self-contained-HTML

@@ -21,26 +21,57 @@ Describe a workflow or a system — in plain English, or paste a Mermaid diagram
 
 Needs a Claude plan that includes skills (Pro, Max, Team, or Enterprise).
 
-**Claude Code** — one command, installs or updates in place:
+**Claude Code** — one command. `-g` installs it globally (every project sees it); drop `-g` to install into the current project only (`./.claude/skills/`):
 
 ```bash
-npx skills add csthink/dashmotion -a claude-code
+npx skills add csthink/dashmotion -a claude-code -g
 ```
 
 <details>
-<summary>Why the <code>-a claude-code</code> flag?</summary>
+<summary>Why <code>-a claude-code</code>, and global vs. project?</summary>
 
-The bare `npx skills add csthink/dashmotion` *symlinks* the skill, and Claude Code's symlink handling is currently rough — the link may not get created, a symlinked skill doesn't appear in `/skills` ([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836)), and `npx skills update` won't refresh it. `-a claude-code` writes a plain copy that `/skills` lists and that overwrites an older copy in place. Other agents (Cursor, Codex, …) read `~/.agents/skills/` directly and work fine with the bare command.
+- **`-a claude-code`** writes a plain *copy* (into `~/.claude/skills/` with `-g`, or `./.claude/skills/` without). The bare `npx skills add csthink/dashmotion` makes a *symlink* instead, and Claude Code's symlink handling is rough — the link may not get created, a symlinked skill doesn't appear in `/skills` ([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836)), and `npx skills update` won't refresh it. A copy lists in `/skills` and updates cleanly. If the CLI ever prompts copy-vs-symlink, choose **copy** (or pass `--copy`). Other agents (Cursor, Codex, …) read `~/.agents/skills/` directly and work fine with the bare command.
+- **Global (`-g`)** lives in `~/.claude/skills/`, available everywhere. **Project-local** (no `-g`) lives in `./.claude/skills/` — scoped to that one directory, and handy to commit alongside a repo so your team gets the skill.
 
 Prefer the zip on Claude Code? `rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/` — clear the folder first when upgrading so old files don't linger.
 </details>
 
 **claude.ai** — download `dashmotion.zip` from [Releases](../../releases), then **Settings → Capabilities → Skills → + Add → upload → toggle on**.
 
-**Update** — re-run the install; it overwrites in place (on claude.ai, delete the old skill and upload the new zip). **Uninstall:**
+### Upgrading
+
+No Claude client tells you when a skill has a new version — you pull updates yourself. On **Claude Code**, one command refreshes it in place:
 
 ```bash
-npx skills remove dashmotion            # installed via the skills CLI (add -g if global)
+npx skills update -g -y          # scope it to one skill: npx skills update dashmotion -g -y
+```
+
+Drop `-g` for a project-local install; re-running the install command works too. On **claude.ai** there's no in-place update — delete the old skill and upload the new `dashmotion.zip`.
+
+<details>
+<summary>Hands-off: auto-update on every session (Claude Code)</summary>
+
+Add a `SessionStart` hook so Claude Code refreshes the skill each time it starts. In `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup", "hooks": [
+        { "type": "command", "command": "npx skills update dashmotion -g -y >/dev/null 2>&1 || true" }
+      ] }
+    ]
+  }
+}
+```
+
+It costs a short network call at startup and silently keeps you on the latest tag. Widen the command to `npx skills update -g -y` to auto-update *all* your global skills.
+</details>
+
+**Uninstall:**
+
+```bash
+npx skills remove dashmotion -g         # installed via the skills CLI (drop -g if project-local)
 rm -rf ~/.claude/skills/dashmotion      # installed by unzipping (use ./.claude/... for project-local)
 ```
 

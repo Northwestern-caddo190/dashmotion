@@ -21,26 +21,57 @@
 
 需要带 skills 的 Claude 订阅(Pro、Max、Team 或 Enterprise)。
 
-**Claude Code** — 一条命令,装/更新都用它(原地覆盖):
+**Claude Code** — 一条命令。`-g` 装成全局(每个项目都能用);不加 `-g` 则只装进当前项目(`./.claude/skills/`):
 
 ```bash
-npx skills add csthink/dashmotion -a claude-code
+npx skills add csthink/dashmotion -a claude-code -g
 ```
 
 <details>
-<summary>为什么要带 <code>-a claude-code</code>?</summary>
+<summary>为什么带 <code>-a claude-code</code>,全局还是项目级?</summary>
 
-裸 `npx skills add csthink/dashmotion` 建的是*符号链接*,而 Claude Code 当前对符号链接支持很不稳——链接可能根本没建成、符号链接的 skill 不出现在 `/skills`([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836))、`npx skills update` 也不刷新它。`-a claude-code` 写入一个普通拷贝,`/skills` 能列出,并会覆盖旧拷贝。其他 agent(Cursor、Codex 等)直接读 `~/.agents/skills/`,裸命令没问题。
+- **`-a claude-code`** 写入一个普通*拷贝*(带 `-g` 进 `~/.claude/skills/`,不带则进 `./.claude/skills/`)。裸 `npx skills add csthink/dashmotion` 建的是*符号链接*,而 Claude Code 对符号链接支持很不稳——链接可能根本没建成、符号链接的 skill 不出现在 `/skills`([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836))、`npx skills update` 也不刷新它。拷贝则能在 `/skills` 列出、也能干净更新。若 CLI 提示选拷贝还是符号链接,选**拷贝**(或加 `--copy`)。其他 agent(Cursor、Codex 等)直接读 `~/.agents/skills/`,裸命令没问题。
+- **全局(`-g`)** 在 `~/.claude/skills/`,处处可用。**项目级**(不加 `-g`)在 `./.claude/skills/`——只在那一个目录生效,适合连同仓库一起提交、让团队都拿到这个 skill。
 
 想在 Claude Code 上用 zip?`rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/` —— 升级时先清空目录,避免旧文件残留。
 </details>
 
 **claude.ai** — 从 [Releases](../../releases) 下载 `dashmotion.zip`,然后 **Settings → Capabilities → Skills → + Add → 上传 → 开启**。
 
-**更新** — 重跑安装命令,原地覆盖(claude.ai 上则删掉旧 skill 再上传新 zip)。**卸载:**
+### 升级
+
+没有任何 Claude 端会提示你 skill 出了新版——更新得自己拉。在 **Claude Code** 上,一条命令原地刷新:
 
 ```bash
-npx skills remove dashmotion            # 用 skills CLI 装的(全局加 -g)
+npx skills update -g -y          # 只更新这一个:npx skills update dashmotion -g -y
+```
+
+项目级安装去掉 `-g`;重跑安装命令也行。**claude.ai** 没有原地更新——删掉旧 skill,重新上传新的 `dashmotion.zip`。
+
+<details>
+<summary>彻底省心:每次启动自动更新(Claude Code)</summary>
+
+挂一个 `SessionStart` hook,让 Claude Code 每次启动时刷新这个 skill。写进 `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup", "hooks": [
+        { "type": "command", "command": "npx skills update dashmotion -g -y >/dev/null 2>&1 || true" }
+      ] }
+    ]
+  }
+}
+```
+
+代价是启动时多一次短网络请求,好处是悄悄帮你停在最新 tag。把命令换成 `npx skills update -g -y` 可自动更新你**所有**全局 skill。
+</details>
+
+**卸载:**
+
+```bash
+npx skills remove dashmotion -g         # 用 skills CLI 装的(项目级去掉 -g)
 rm -rf ~/.claude/skills/dashmotion      # 手动解压装的(项目级用 ./.claude/...)
 ```
 
