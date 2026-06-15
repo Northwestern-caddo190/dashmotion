@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Signup State Machine — Animated Workflow</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
     background: #020617;
     min-height: 100vh;
     padding: 2rem;
@@ -73,7 +72,7 @@
       </defs>
 
       <!-- ===== LEGEND ===== -->
-      <g font-family="JetBrains Mono, monospace" font-size="11" fill="#64748b">
+      <g font-family="JetBrains Mono, ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace" font-size="11" fill="#64748b">
         <path d="M620 44 H652" stroke="#10b981" stroke-width="1" stroke-dasharray="5 5" fill="none" opacity="0.85"/>
         <text x="660" y="48">transition</text>
         <rect x="620" y="60" width="14" height="14" rx="3" fill="rgba(251,191,36,0.04)" stroke="#fbbf24"/>
@@ -86,9 +85,9 @@
         <path class="flow" d="M400 80 V132" marker-end="url(#arrow)"/>
         <!-- Fill Signup Form -> Validate Input -->
         <path class="flow" d="M400 180 V232" marker-end="url(#arrow)"/>
-        <!-- Validate Input -- errors --> back to form (side loop, no dot) -->
+        <!-- Validate Input — errors —> back to form (side loop, no dot) -->
         <path class="flow" d="M324 258 C264 258 264 158 312 158" marker-end="url(#arrow)"/>
-        <!-- Validate Input -- valid --> Create Account -->
+        <!-- Validate Input — valid —> Create Account -->
         <path class="flow" d="M400 280 V332" marker-end="url(#arrow)"/>
         <!-- Create Account -> Send Verification Email -->
         <path class="flow" d="M400 380 V432" marker-end="url(#arrow)"/>
@@ -96,24 +95,24 @@
         <path class="flow" d="M400 480 V532" marker-end="url(#arrow)"/>
         <!-- Wait ≤ 24h -> Link Clicked? -->
         <path class="flow" d="M400 580 V632" marker-end="url(#arrow)"/>
-        <!-- Fan-out: Link Clicked? -- clicked --> Activate Account -->
+        <!-- Fan-out: Link Clicked? — clicked —> Activate Account -->
         <path class="flow" d="M400 680 V708 H200 V728" marker-end="url(#arrow)"/>
-        <!-- Fan-out: Link Clicked? -- not clicked --> Resend Left? -->
+        <!-- Fan-out: Link Clicked? — not clicked —> Resend Left? -->
         <path class="flow" d="M400 680 V708 H600 V728" marker-end="url(#arrow)"/>
         <!-- Activate Account -> Start Onboarding -->
         <path class="flow" d="M200 776 V828" marker-end="url(#arrow)"/>
         <!-- Start Onboarding -> ACTIVE -->
         <path class="flow" d="M200 876 V928" marker-end="url(#arrow)"/>
-        <!-- Resend Left? -- yes --> loop back to Send Verification Email (no dot) -->
+        <!-- Resend Left? — yes —> loop back to Send Verification Email (no dot) -->
         <path class="flow" d="M667 754 H730 V458 H518" marker-end="url(#arrow)"/>
-        <!-- Resend Left? -- window expired --> Purge Account -->
+        <!-- Resend Left? — window expired —> Purge Account -->
         <path class="flow" d="M600 776 V828" marker-end="url(#arrow)"/>
         <!-- Purge Account -> PURGED -->
         <path class="flow" d="M600 876 V928" marker-end="url(#arrow)"/>
       </g>
 
       <!-- ===== EDGE LABELS ===== -->
-      <g font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">
+      <g font-family="JetBrains Mono, ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace" font-size="10" fill="#64748b">
         <text x="250" y="212" text-anchor="middle">errors</text>
         <text x="408" y="310" text-anchor="start">valid</text>
         <text x="192" y="722" text-anchor="end">clicked</text>
@@ -131,7 +130,7 @@
       </g>
 
       <!-- ===== NODES (drawn last, on top) ===== -->
-      <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+      <g font-family="JetBrains Mono, ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace" text-anchor="middle">
         <!-- START pill -->
         <rect x="340" y="40" width="120" height="40" rx="20" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1.5"/>
         <text x="400" y="65" fill="#e2e8f0" font-size="13" font-weight="600">START</text>

@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Serverless Order Platform — Architecture (Dashmotion)</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
     background: #020617;
     min-height: 100vh;
     padding: 2rem;
@@ -101,7 +100,7 @@
         <path class="flow-async" d="M580 540 V586" stroke="#fb923c" marker-end="url(#arrow)"/>
         <path class="flow-async" d="M850 540 V586" stroke="#fb923c" marker-end="url(#arrow)"/>
       </g>
-      <g fill="#64748b" font-size="9" font-family="JetBrains Mono, monospace">
+      <g fill="#64748b" font-size="9" font-family="JetBrains Mono, ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace">
         <text x="230" y="97" text-anchor="middle">HTTPS</text>
         <text x="470" y="97" text-anchor="middle">origin fetch</text>
         <text x="128" y="170">POST /orders</text>
@@ -120,18 +119,18 @@
       <!-- Journey 1 — synchronous order request (cyan) -->
       <g fill="#22d3ee">
         <circle r="3.5" class="dot"><animateMotion dur="1s" begin="0s;a3.end+1.2s" id="s1" fill="freeze" path="M115 140 V218 H266"/></circle>
-        <circle r="3.5" class="dot"><animateMotion dur="0.9s" begin="s1.end+0.25s" id="s2" fill="freeze" path="M434 218 H756"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="0.9s" begin="s1.end+0.25s" id="s2" fill="freeze" path="M434 218 H506"/></circle>
       </g>
       <!-- Journey 2 — asynchronous fulfillment event (orange) -->
       <g fill="#fb923c">
-        <circle r="3.5" class="dot"><animateMotion dur="0.7s" begin="s2.end+0.45s" id="a1" fill="freeze" path="M850 250 V366"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="0.7s" begin="s2.end+0.45s" id="a1" fill="freeze" path="M850 250 V292"/></circle>
         <circle r="3.5" class="dot"><animateMotion dur="1s" begin="a1.end+0.3s" id="a2" fill="freeze" path="M850 430 V450 H580 V476"/></circle>
-        <circle r="3.5" class="dot"><animateMotion dur="0.9s" begin="a1.end+0.3s" id="a2b" fill="freeze" path="M850 430 V586"/></circle>
-        <circle r="3.5" class="dot"><animateMotion dur="1.5s" begin="a2.end+0.3s" id="a3" fill="freeze" path="M580 540 V618 H194"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="0.9s" begin="a1.end+0.3s" id="a2b" fill="freeze" path="M850 430 V476"/></circle>
+        <circle r="3.5" class="dot"><animateMotion dur="1.5s" begin="a2.end+0.3s" id="a3" fill="freeze" path="M580 540 V586"/></circle>
       </g>
 
       <!-- ===== COMPONENTS (opaque base + styled rect, drawn last) ===== -->
-      <g font-family="JetBrains Mono, monospace" text-anchor="middle">
+      <g font-family="JetBrains Mono, ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace" text-anchor="middle">
         <!-- Client (frontend) -->
         <rect x="40" y="80" width="150" height="56" rx="8" fill="#0b1226"/>
         <rect x="40" y="80" width="150" height="56" rx="8" fill="rgba(8,51,68,0.45)" stroke="#22d3ee" stroke-width="1.5"/>
@@ -217,7 +216,7 @@
       </g>
 
       <!-- ===== LEGEND (outside all boundaries) ===== -->
-      <g font-family="JetBrains Mono, monospace" font-size="11">
+      <g font-family="JetBrains Mono, ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace" font-size="11">
         <rect x="44"  y="700" width="12" height="12" rx="3" fill="rgba(8,51,68,0.45)" stroke="#22d3ee"/>
         <text x="64"  y="710" fill="#94a3b8">frontend</text>
         <rect x="150" y="700" width="12" height="12" rx="3" fill="rgba(120,53,15,0.35)" stroke="#fbbf24"/>
