@@ -17,9 +17,11 @@ Monochrome green is the default. If the user wants semantics, allow at most ONE 
 
 ## Node shapes
 
-- **START / END**: pill, width 110–130, height 40, uppercase label.
-- **Step / Activity**: rounded rect `rx="8"`, height 44, width = `max(label_chars × 8.5 + 32, 110)`.
-- **Decision**: same rect, dashed border (`stroke-dasharray="4 3"`, the node border itself is NOT animated), yes/no labels placed beside the outgoing connectors in 10px `#64748b`.
+`shape` is **optional in the graph JSON and defaults to `step`** — omit it on ordinary steps and the engine renders a step rect. Only **pill** and **decision** must be set explicitly: neither is inferable from edge structure (a node with no incoming or outgoing edge is *not* assumed to be a pill — many flows open and close on a step).
+
+- **START / END**: pill, width 110–130, height 40, uppercase label. **Set `shape: "pill"` explicitly.**
+- **Step / Activity**: rounded rect `rx="8"`, height 44, width = `max(label_chars × 8.5 + 32, 110)`. **The default — omit `shape`.**
+- **Decision**: same rect, dashed border (`stroke-dasharray="4 3"`, the node border itself is NOT animated), yes/no labels placed beside the outgoing connectors in 10px `#64748b`. **Set `shape: "decision"` explicitly — a branch node with `shape` omitted silently renders as a plain step, losing its yes/no semantics.**
 - **Wait / Timer / External**: rect in the secondary hue if semantic coloring is on.
 
 ## Layout arithmetic

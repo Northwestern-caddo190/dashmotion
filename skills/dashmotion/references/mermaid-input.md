@@ -25,6 +25,8 @@ Mermaid layout direction (`TB`/`TD`/`BT`/`LR`/`RL`, including per-subgraph `dire
 | `A{text}` | Decision (dashed border, branch labels beside outgoing connectors) — Flow mode |
 | `A[(text)]` | Flow: plain step. Architecture: database-typed component (violet) |
 
+> In Flow mode `shape` defaults to `step`, so **omit `shape` for every "Step" row above** — write `shape` only for the pill and decision rows. (Architecture is unaffected; it uses `type`/`tier`, not `shape`.)
+
 **Never invent or drop nodes.** If a flowchart has no explicit start/end shape, do NOT add synthetic START/END pills — style the in-degree-0 node as the spine's entry (pill shape allowed, label verbatim from source).
 
 In Architecture mode, type each component from its label like you would for a prose description (PostgreSQL → database, Kafka → message bus, NGINX → cloud infra, …).

@@ -83,7 +83,7 @@ Boundaries come out as clean rectangles (checker passes) **iff** you author tier
   "nodes": [
     {
       "id": "A", "label": "verbatim label", "sublabel": "arch 2nd line, optional",
-      "shape": "pill | step | decision",            // FLOW only
+      "shape": "pill | step | decision",            // FLOW only; OPTIONAL, defaults to step — omit on steps; set pill/decision explicitly (not inferable from edges)
       "type":  "frontend|backend|database|cloud|security|bus|external", // ARCH only
       "tier": 0,                                     // ARCH: the row, 0 = top (required in arch; omit in flow)
       "group": "GROUP_ID",                           // boundary membership, optional
@@ -99,8 +99,7 @@ Boundaries come out as clean rectangles (checker passes) **iff** you author tier
 
 Authoring rules:
 
-- **Flow:** omit `tier`; set `shape` per node; give entry/exit `[*]` nodes `shape: "pill"`.
-  Loops/self-loops are handled for you (see above).
+- **Flow:** omit `tier`. `shape` is **optional and defaults to `step`** — omit it on ordinary step nodes. Set `shape` explicitly only for **pills** (entry/exit `[*]` nodes → `"pill"`) and **decisions** (branch nodes → `"decision"`); neither is inferable from edge structure, and a branch node with `shape` omitted renders as a plain step (yes/no semantics lost). Loops/self-loops are handled for you (see above).
 - **Architecture:** set `tier` on every node; obey the clean-boundary contract.
   Group `kind`: namespaces / VPCs / regions → `region` (amber `8 4`); subnets /
   inner zones → `subnet` (rose `4 4`). Details in `architecture-mode.md`.
