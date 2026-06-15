@@ -793,7 +793,7 @@ def render(lo, geom):
             bound_svg.append(
                 f'<rect x="{fmt(x)}" y="{fmt(y)}" width="{fmt(w)}" height="{fmt(h)}" '
                 f'rx="{rx}" fill="none" stroke="{stroke}" stroke-width="1" '
-                f'stroke-dasharray="{dash}" opacity="0.6"/>')
+                f'stroke-dasharray="{dash}" opacity="0.6" data-grp-id="{esc(g.id)}"/>')
             bound_svg.append(
                 f'<text x="{fmt(x+14)}" y="{fmt(y+18)}" fill="{stroke}" '
                 f'font-size="{fs}" opacity="0.9">{esc(g.label)}</text>')
@@ -894,13 +894,18 @@ def render(lo, geom):
                 used_types.append((fill, stroke, leg))
             st = n.sem_stroke or stroke
             dash = f' stroke-dasharray="{n.sem_dash}"' if n.sem_dash else ""
+            # group membership (resolved ancestor chain) for the C9 structural
+            # check — lets check_diagram judge "node geometrically inside a group
+            # box it isn't a member of" from the HTML alone (no graph JSON needed
+            # at generation-time Step 6). Empty for ungrouped nodes.
+            grp = esc(" ".join(sorted(lo._group_set(n))))
             node_svg.append(
                 f'<rect x="{fmt(n.x)}" y="{fmt(n.y)}" width="{fmt(n.w)}" '
-                f'height="{fmt(n.h)}" rx="8" fill="#0b1226"/>')
+                f'height="{fmt(n.h)}" rx="8" fill="#0b1226" data-grp="{grp}"/>')
             node_svg.append(
                 f'<rect x="{fmt(n.x)}" y="{fmt(n.y)}" width="{fmt(n.w)}" '
                 f'height="{fmt(n.h)}" rx="8" fill="{fill}" stroke="{st}" '
-                f'stroke-width="1.5"{dash}/>')
+                f'stroke-width="1.5"{dash} data-grp="{grp}"/>')
             node_svg.append(_node_text_svg(n))
 
     # legend (arch): below everything

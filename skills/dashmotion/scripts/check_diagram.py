@@ -12,6 +12,8 @@ plus three cheap contract checks that share the same parsing work:
   C6 black-fill     a multi-segment connector with effective fill != none
   C7 endpoint-pierce a connector endpoint sits deep inside a node box
   C8 begin-ref      a SMIL begin="X.end+..." references a missing id
+  C9 group-member   a node sits fully inside a group box it is not a member of
+                    (the silent class C1 can't see: containment is C1-exempt)
 
 Not checked (documented limitation): text/label collisions (needs font
 metrics), boundary 20px padding, legend placement.
@@ -302,6 +304,27 @@ def check_file(path):
         for b in rects[i + 1:]:
             if a.intersects(b) and not a.contains_rect(b) and not b.contains_rect(a):
                 add("C1", f"partial overlap: {a.label()} vs {b.label()}")
+
+    # -- C9: group membership --
+    # A node fully inside a group box it doesn't belong to is the silent
+    # corruption class group-blind layering produces (e.g. a region box swallows
+    # a foreign node, or a subnet box swallows its parent's loose node). C1 can't
+    # see it because full containment is C1-exempt (subnet-in-region is a valid
+    # containment). The renderer embeds data-grp-id on each group box and
+    # data-grp (the node's resolved ancestor-group set) on each node rect, so the
+    # judgement is made from the HTML alone — no graph JSON needed at Step 6.
+    grp_boxes = [r for r in rects if r.el is not None and r.el.get("data-grp-id")]
+    grp_nodes = [r for r in rects if r.el is not None and r.el.get("data-grp") is not None]
+    for box in grp_boxes:
+        gid = box.el.get("data-grp-id")
+        for nd in grp_nodes:
+            members = set((nd.el.get("data-grp") or "").split())
+            if gid in members:
+                continue
+            if box.contains_rect(nd):
+                add("C9", f"node {nd.label()} is inside group box \"{gid}\" "
+                          f"{box.label()} but is not a member "
+                          f"(node groups: {sorted(members) or 'none'})")
 
     # -- collect connector paths --
     connectors = []   # (points, samples, el, anc, unsupported)
