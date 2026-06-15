@@ -1,6 +1,6 @@
 ---
 name: dashmotion
-version: 2.2.1
+version: 2.2.2
 description: 'Create dark-themed, animated technical diagrams as self-contained HTML+SVG files — flowcharts whose connectors visibly flow, and architecture diagrams where requests travel as light dots through the system (Diagrid/Temporal landing-page style). Use this skill whenever the user asks for a flowchart, workflow, pipeline, process diagram, state machine, system architecture, infrastructure, cloud, microservices, or network topology diagram — and especially when they mention "animated", "flowing", "dynamic", "alive", "GIF-like", or want a diagram for a landing page, README, docs, or product demo. Also use it to convert Mermaid source (a mermaid code block or .mmd file) into an animated diagram — "animate this mermaid", "make this flowchart move". Prefer this over static diagram output whenever the diagram represents anything that moves: requests, events, data, jobs, messages, or control flow.'
 ---
 
@@ -50,7 +50,7 @@ Mixed request ("show our microservices AND how an order flows through them") →
 
 ## Step 3 — Shared design tokens
 
-- Page: `#020617`, 40px grid pattern (`#0f1b33`, 0.5px lines), JetBrains Mono via Google Fonts.
+- Page: `#020617`, 40px grid pattern (`#0f1b33`, 0.5px lines), JetBrains Mono when locally installed, else a system monospace stack (`ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace`) — no web-font fetch, the file is fully self-contained.
 - Text: labels `#e2e8f0` 13px/500, sublabels `#64748b` 10px, legend 11px.
 - Node corner `rx="8"`; START/END pills `rx` = height/2.
 - One shared arrowhead marker using `context-stroke` (inherits each line's color):
@@ -130,4 +130,4 @@ Deliver the file only after a pass where nothing needed fixing.
 
 ## Output contract
 
-One self-contained `.html`: embedded CSS, inline SVG, no external assets except Google Fonts, no JS dependencies — only the ~15-line inline pause/reduced-motion script. Renders correctly opened from the filesystem.
+One self-contained `.html`: embedded CSS, inline SVG, no external assets, no JS dependencies — only the ~15-line inline pause/reduced-motion script. Renders correctly opened from the filesystem.

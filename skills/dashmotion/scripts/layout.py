@@ -669,7 +669,7 @@ def geometry(lo):
 
 CSS_COMMON = """
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'JetBrains Mono', monospace; background: #020617;
+  body { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace; background: #020617;
          min-height: 100vh; padding: 2rem; color: #e2e8f0; }
   .container { max-width: %dpx; margin: 0 auto; }
   .header { display: flex; align-items: center; gap: 12px; margin-bottom: 0.4rem; }
@@ -954,11 +954,11 @@ def render(lo, geom):
     svg.append('<g>')
     svg.extend(dot_svg)
     svg.append('</g>')
-    svg.append('<g font-family="JetBrains Mono, monospace" text-anchor="middle">')
+    svg.append('<g font-family="JetBrains Mono, ui-monospace, \'SF Mono\', \'Cascadia Code\', Menlo, Consolas, monospace" text-anchor="middle">')
     svg.extend(node_svg)
     svg.append('</g>')
     if legend_svg:
-        svg.append('<g font-family="JetBrains Mono, monospace" font-size="11">')
+        svg.append('<g font-family="JetBrains Mono, ui-monospace, \'SF Mono\', \'Cascadia Code\', Menlo, Consolas, monospace" font-size="11">')
         svg.extend(legend_svg)
         svg.append('</g>')
     svg.append('</svg>')
@@ -1004,7 +1004,6 @@ def render(lo, geom):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{esc(lo.title)} — dashmotion</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>{css}</style>
 </head>
 <body>

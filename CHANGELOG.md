@@ -28,6 +28,39 @@ not how the generator produces it.
 The test, in one line: **could a user ask for something they couldn't before, or get
 a materially different kind of artifact? → minor; otherwise → patch.**
 
+## 2.2.2 — Self-contained output; stricter label fidelity
+
+A **patch**, not a feature: same inputs, same output contract — the rendered file
+is now *fully* self-contained, and the fidelity check no longer hides a dropped
+label separator. Nothing new to ask for.
+
+### Changed
+
+- **The output drops its Google Fonts dependency — now truly self-contained.** The
+  rendered HTML no longer links `fonts.googleapis.com`; it falls back through a system
+  monospace stack (`'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code', Menlo,
+  Consolas, monospace`), so JetBrains Mono still renders when installed locally, but the
+  file now opens offline, issues no third-party request, and carries zero external
+  assets. The output contract's "no external assets except Google Fonts" becomes just
+  "no external assets."
+
+### Fixed
+
+- **`check_fidelity.py` now catches a genuinely dropped label separator.** It used to
+  strip separator punctuation (`：:·•,，;；`) before matching, which also silently
+  accepted a label whose separator was lost in rendering. It now matches the separator
+  as an element boundary — the legitimate architecture label/sublabel split (`A：B` →
+  two adjacent `<text>` elements) still passes, while a real collapse (`A：B` → "A B" in
+  one element) is reported instead of hidden.
+
+### Verified
+
+- `run_checks` 11/11, `check_diagram` 0 violations, `check_fidelity` PASS (including the
+  new boundary case). Local-test bianque (35 nodes / 38 edges) generated in ~3 min,
+  inside the 8-min perf-gate. Model output and render latency unchanged — both changes
+  live off the model's authoring path (deterministic Python + template), so generation
+  cost is identical.
+
 ## 2.2.1 — Performance: layout.py renders the finished file
 
 A **performance** patch, not a feature: same inputs, same self-contained-HTML

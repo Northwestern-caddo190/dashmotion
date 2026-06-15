@@ -326,19 +326,21 @@ def main():
     # as a fallback before declaring a label missing.
     blob_loose = norm(" ".join(texts))
 
-    # Third fallback tier: the label/sublabel split may absorb the separator
-    # punctuation (`A：B` -> label "A" + sublabel "B"); compare with separator
-    # chars stripped. Limitation: also hides a genuinely dropped separator.
+    # Third fallback tier: the architecture label/sublabel split puts the text
+    # on either side of a separator (`A：B` -> label "A" + sublabel "B") into
+    # two ADJACENT <text> elements, so the separator surfaces as an element
+    # boundary (" | " in `blob`) rather than a dropped character. Accept that —
+    # but only across the boundary, so a *genuinely* dropped separator (`A：B`
+    # collapsed to "A B" inside one element) is still reported missing. (This
+    # replaces an older strip-and-compare tier that also silently hid real loss.)
     SEP = re.compile(r"[：:·•,，;；]")
-
-    def desep(s):
-        return " ".join(SEP.sub(" ", s).split())
 
     def present(lbl):
         n = norm(lbl)
         if n in blob or n in blob_loose:
             return True
-        return desep(n) in desep(blob_loose)
+        boundary = norm(SEP.sub(" | ", lbl))
+        return boundary != n and boundary in blob
 
     failures = []
     # F1 node labels
